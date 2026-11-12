@@ -1,0 +1,11 @@
+{
+  "name": "Pecking Order",
+  "short_name": "Pecking Order",
+  "description": "The daily ordering puzzle: three rounds, one surprising fact each.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#fbf6ec",
+  "theme_color": "#fbf6ec",
+  "icons": [{ "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}
