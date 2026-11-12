@@ -68,9 +68,20 @@ Design decisions worth knowing:
 
 ## Content
 
-120 sets, enough for 40 days; after that the cycle repeats. `npm test` checks that every set has five unique items in rising order, values far enough apart to be a fair question (at least 8% apart, or 3 years / 5 degrees), a surprise line, a short teaser, and a same-rule partner for hard mode.
+144 sets, enough for 48 days; after that the cycle repeats. They come from two decks: 120 classic sets and 24 "fun stats" sets (snack serving sizes, YouTube subscribers, bite force, LEGO piece counts, caffeine, sugar, spice). The decks are dealt alternately, so a fun-stats day turns up every other day. `npm test` checks that every set has five unique items in rising order, values far enough apart to be a fair question (at least 8% apart, or 3 years / 5 degrees), a surprise line, a short teaser, and a same-rule partner for hard mode.
 
-The figures were written from general knowledge and have not been checked against sources. Most are textbook values. These are the ones to verify before sharing widely, because sources vary or the number is an estimate:
+### Fun stats sources
+
+The fun-stats deck was checked against sources in November 2026. Soft numbers are shown as "about" in the game, and every set keeps wide gaps so a small change cannot flip the order.
+
+- Serving sizes: US Nutrition Facts labels as listed by grocers (Goldfish 55 pieces, Cheez-It 27, Triscuit 6, Ritz 5, Doritos about 12, Lay's about 15). Counts shift by bag size and over time; Lay's and Pringles listings disagree by a few chips.
+- YouTube subscribers: Soundstripe, HypeAuditor and Tubefilter charts, October 2026 (MrBeast about 520 million, T-Series 316 million, Cocomelon about 200 million). These go stale fastest; recheck every few months.
+- Bite force: Field & Stream and BBC Science Focus lists. Only the crocodile figure was measured directly; the rest are estimates.
+- LEGO piece counts: Brick Fanatics "biggest LEGO sets" list.
+- Caffeine: CSPI caffeine chart. Scoville: Guinness for Pepper X and Carolina Reaper, typical mid-range values for the rest.
+- Not checked against a source (written from memory): candy serving counts for Hershey's Kisses and Reese's Pieces, fruit sugar, McDonald's calories, trophy weights, sport speed records, part counts for a piano, car and 747.
+
+The classic deck's figures were written from general knowledge and have not been checked against sources. Most are textbook values. These are the ones to verify before sharing widely, because sources vary or the number is an estimate:
 
 - Weight of a cumulus cloud (~500 tonnes) and of the Eiffel Tower (10,100 tonnes including non-metal parts)
 - Animal top speeds: black mamba, grizzly bear, house cat, mallard, dragonfly, swift, hippo
@@ -98,4 +109,4 @@ The build uses a relative base path, so it works at a domain root or under `/<re
 Not built, on purpose, because it needs a server:
 
 - "You beat X% of players today" and "only 12% got round 3 perfect". A single serverless function with a key-value store would do: `POST /result {day, hard, scores[3]}` increments per-day histogram buckets, `GET /stats/:day` returns them. No accounts; one submission per browser, enforced loosely with a local flag.
-- More content. 40 days is a starting point, and the validation tests make adding sets safe.
+- More content. 48 days is a starting point, and the validation tests make adding sets safe.

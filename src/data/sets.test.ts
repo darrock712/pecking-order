@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { exampleFor } from '../game/daily'
+import { exampleFor, setsForDay } from '../game/daily'
 import { SETS } from './sets'
 
 /** Values this close are too easy to get "wrong" for reasons of measurement, not knowledge. */
@@ -42,5 +42,12 @@ describe('puzzle content', () => {
 
   it('gives every set a hard-mode example with the same rule', () => {
     for (const set of SETS) expect(exampleFor(set, SETS), set.items[0][0]).toBeDefined()
+  })
+})
+
+describe('deck order', () => {
+  it('keeps day 1 as it launched and brings in fun stats on day 2', () => {
+    expect(setsForDay(1, SETS).map((s) => s.items[0][0])).toEqual(['House cat', 'Neptune', 'Oxford University starts teaching'])
+    expect(setsForDay(2, SETS).map((s) => s.key)).toEqual(['serving', 'pieces', 'subs'])
   })
 })
