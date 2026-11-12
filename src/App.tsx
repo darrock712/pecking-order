@@ -1,14 +1,17 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Bird } from './components/Bird'
+import { Home } from './components/Home'
 import { Round } from './components/Round'
 import { Summary } from './components/Summary'
 import { SETS } from './data/sets'
 import { dateForDay, dayNumber, exampleFor, setsForDay } from './game/daily'
-import { DAY_MAX, scoreDay } from './game/scoring'
+import { DAY_MAX, ROUND_MAX, scoreDay } from './game/scoring'
 import { computeStats } from './game/stats'
 import { loadSave, storeSave } from './game/storage'
 import type { PuzzleSet, RoundResult, Save } from './game/types'
 
 type View =
+  | { kind: 'home' }
   | { kind: 'day'; day: number }
   | { kind: 'archive' }
   | { kind: 'practice'; set: PuzzleSet; seed: number }
@@ -44,7 +47,7 @@ function useToday() {
 export default function App() {
   const today = useToday()
   const [save, setSave] = useState<Save>(loadSave)
-  const [view, setView] = useState<View>({ kind: 'day', day: today })
+  const [view, setView] = useState<View>({ kind: 'home' })
   // Which round of the viewed day is on screen; 3 means the summary.
   const [roundIndex, setRoundIndex] = useState(() => save.days[today]?.rounds.length ?? 0)
   const [justFinished, setJustFinished] = useState(false)
@@ -88,8 +91,24 @@ export default function App() {
     })
   }
 
+  const goHome = () => setView({ kind: 'home' })
+
   let content
-  if (view.kind === 'archive') {
+  if (view.kind === 'home') {
+    const record = save.days[today]
+    content = (
+      <Home
+        day={today}
+        sets={setsForDay(today, SETS)}
+        record={record}
+        hard={record?.hard ?? save.hard}
+        stats={stats}
+        onPlay={() => openDay(today)}
+        onArchive={() => setView({ kind: 'archive' })}
+        onPractice={startPractice}
+      />
+    )
+  } else if (view.kind === 'archive') {
     const past = Array.from({ length: today - 1 }, (_, i) => today - 1 - i)
     content = (
       <section className="archive" aria-label="Past days">
@@ -112,7 +131,7 @@ export default function App() {
             )
           })}
         </ul>
-        <button type="button" className="secondary" onClick={() => openDay(today)}>Back to today</button>
+        <button type="button" className="secondary" onClick={goHome}>Back to today</button>
       </section>
     )
   } else if (view.kind === 'practice') {
@@ -154,12 +173,17 @@ export default function App() {
       const played = record?.rounds ?? []
       content = (
         <>
-          <div className="pips" aria-label={`Round ${roundIndex + 1} of 3`}>
-            {sets.map((_, i) => (
-              <span key={i} className={`pip ${i < played.length ? 'done' : i === roundIndex ? 'current' : ''}`}>
-                {i < played.length ? played[i].score : i + 1}
-              </span>
-            ))}
+          <div className="perch" aria-label={`Round ${roundIndex + 1} of 3`}>
+            {sets.map((_, i) => {
+              const result = played[i]
+              const tone = !result ? undefined : result.score >= ROUND_MAX * 0.8 ? 'hit' : result.score >= ROUND_MAX * 0.4 ? 'near' : 'miss'
+              return (
+                <span key={i} className={`perch-slot ${result ? 'done' : i === roundIndex ? 'current' : ''}`}>
+                  {tone ? <Bird size={30} tone={tone} /> : <i />}
+                  <b>{result ? result.score : `Round ${i + 1}`}</b>
+                </span>
+              )
+            })}
             <span className="pips-total">
               <b>{scoreDay(played)}</b> pts
             </span>
@@ -190,7 +214,7 @@ export default function App() {
   return (
     <div className="app">
       <header>
-        <button type="button" className="brand" onClick={() => openDay(today)} aria-label="Pecking Order — today’s puzzle">
+        <button type="button" className="brand" onClick={goHome} aria-label="Pecking Order — today’s puzzle">
           <Logo />
           <span>Pecking Order</span>
         </button>
@@ -223,7 +247,7 @@ export default function App() {
 
       {view.kind === 'practice' && (
         <footer>
-          <button type="button" className="secondary" onClick={() => openDay(today)}>Back to today</button>
+          <button type="button" className="secondary" onClick={goHome}>Back to today</button>
         </footer>
       )}
 
