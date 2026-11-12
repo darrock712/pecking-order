@@ -1,1 +1,31 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630"><rect width="1200" height="630" fill="#fbf6ec"/><g transform="translate(90 150)"><rect y="220" width="330" height="76" rx="38" fill="#3fb37f"/><rect y="110" width="245" height="76" rx="38" fill="#f2b134"/><rect width="155" height="76" rx="38" fill="#ef6a5b"/><path d="M155 18l66 20-66 20z" fill="#1f2430"/><circle cx="108" cy="32" r="12" fill="#fbf6ec"/></g><text x="500" y="290" font-family="system-ui,Segoe UI,sans-serif" font-size="92" font-weight="800" fill="#1f2430">Pecking Order</text><text x="502" y="370" font-family="system-ui,Segoe UI,sans-serif" font-size="40" fill="#6b7180">Put five things in order. Daily.</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1200 630">
+  <defs>
+    <radialGradient id="glow" cx="0.85" cy="0" r="0.9">
+      <stop offset="0" stop-color="#45683f"/>
+      <stop offset="0.6" stop-color="#0f4f4c"/>
+    </radialGradient>
+    <g id="bird">
+      <g fill="#fdf8ec">
+        <path d="M9 22 1 14.5h11z"/>
+        <ellipse cx="21" cy="22" rx="13" ry="11"/>
+        <circle cx="31" cy="13" r="8"/>
+      </g>
+      <ellipse cx="23" cy="25.5" rx="8" ry="5.5" fill="#fff" opacity="0.28"/>
+      <path d="m38 10.5 7 3-7 3z" fill="#ffc53d"/>
+      <circle cx="33" cy="11.5" r="1.7" fill="#0a3b39"/>
+      <path d="M18 32v6M24.5 32v6" fill="none" stroke="#fdf8ec" stroke-width="1.6" stroke-linecap="round"/>
+    </g>
+  </defs>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+  <use xlink:href="#bird" transform="translate(255 189.2) scale(1.6)"/>
+  <use xlink:href="#bird" transform="translate(359 174) scale(2)"/>
+  <use xlink:href="#bird" transform="translate(481 158.8) scale(2.4)"/>
+  <use xlink:href="#bird" transform="translate(621 139.8) scale(2.9)"/>
+  <g transform="translate(784 117) scale(3.5)">
+    <path d="M24.5 4.5 23 -5l4.5 4 3.5-5.5 3.5 5.5 4.5-4-1.5 9.5z" fill="#ffc53d"/>
+    <use xlink:href="#bird"/>
+  </g>
+  <rect y="248" width="1200" height="5" fill="#fdf8ec" opacity="0.55"/>
+  <text x="600" y="410" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="112" font-weight="800" letter-spacing="-3" fill="#fdf8ec">Pecking Order</text>
+  <text x="600" y="482" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="40" font-weight="600" fill="#fdf8ec" opacity="0.85">Five things. One right order. Three rounds a day.</text>
+</svg>

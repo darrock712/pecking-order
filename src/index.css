@@ -56,7 +56,8 @@ ol, ul { list-style: none; }
 
 header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 14px; }
 .brand { display: flex; align-items: center; gap: 6px; border: 0; background: none; padding: 4px 0; font-family: var(--display); font-weight: 800; font-size: 1.15rem; letter-spacing: -0.02em; white-space: nowrap; min-width: 0; }
-.logo { width: 26px; height: 26px; flex: none; }
+.logo { width: 30px; height: 30px; flex: none; display: grid; place-items: center; border-radius: 9px; background: var(--hero); }
+.logo .bird-legs { display: none; }
 @media (max-width: 350px) { .brand span { display: none; } }
 nav { display: flex; align-items: center; gap: 5px; flex: none; }
 .streak { font-weight: 700; font-size: 0.85rem; white-space: nowrap; }

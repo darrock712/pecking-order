@@ -20,13 +20,9 @@ const ROUND_NAMES = ['Round 1 · warm-up', 'Round 2 · trickier', 'Round 3 · th
 
 function Logo() {
   return (
-    <svg className="logo" viewBox="0 0 32 32" aria-hidden="true">
-      <rect x="3" y="21" width="26" height="6" rx="3" fill="var(--hit)" />
-      <rect x="3" y="13" width="19" height="6" rx="3" fill="var(--near)" />
-      <rect x="3" y="5" width="12" height="6" rx="3" fill="var(--miss)" />
-      <path d="M15 6.5l5 1.5-5 1.5z" fill="var(--ink)" />
-      <circle cx="11" cy="7.5" r="1" fill="var(--bg)" />
-    </svg>
+    <span className="logo">
+      <Bird size={22} crown />
+    </span>
   )
 }
 
