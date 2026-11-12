@@ -358,7 +358,7 @@ const FUN: PuzzleSet[] = [
   s('height', E, 'm', [['Great Sphinx of Giza', 20], ['Christ the Redeemer', 30], ['Statue of Liberty, without the pedestal', 46], ['Spring Temple Buddha', 128], ['Statue of Unity', 182]],
     'India’s Statue of Unity is almost four times the height of the Statue of Liberty.', 'Five statues. One towers over the rest.'),
 
-  s('time', M, 's', [['Fastest Formula 1 pit stop', 1.8, '1.80 seconds'], ['Fastest Rubik’s Cube solve', 3, 'about 3 seconds'], ['Fastest 100 metres', 9.58, '9.58 seconds'], ['Fastest mile', 223, '3 min 43 s'], ['Fastest marathon', 7235, 'about 2 hours']],
+  s('time', M, 's', [['Fastest Formula 1 pit stop', 1.8, '1.80 seconds'], ['Fastest Rubik’s Cube solve', 2.51, '2.51 seconds'], ['Fastest 100 metres', 9.58, '9.58 seconds'], ['Fastest mile', 223, '3 min 43 s'], ['Fastest marathon', 7170, '1 h 59 min 30 s']],
     'A Formula 1 crew has changed all four tyres in 1.80 seconds — faster than anyone has ever solved a Rubik’s Cube.', 'Five world records against the clock.'),
   s('subs', M, 'million', [['Dude Perfect', 63, 'about 63 million'], ['Mark Rober', 82, 'about 82 million'], ['PewDiePie', 110, 'about 110 million'], ['Vlad and Niki', 150, 'about 150 million'], ['T-Series', 316, 'about 316 million']],
     'Mark Rober, a former NASA engineer who builds glitter bombs, has more subscribers than Dude Perfect.', 'Trick shots, glitter bombs and nursery rhymes.'),
@@ -369,8 +369,8 @@ const FUN: PuzzleSet[] = [
 
   s('calories', T, 'kcal', [['Stick of celery', 6], ['One Oreo', 53], ['Banana', 105], ['Snickers bar', 250], ['Avocado', 320, 'about 320 kcal']],
     'A whole avocado has more calories than a Snickers bar.', 'A health food out-calories a chocolate bar.'),
-  s('weight', T, 'kg', [['Sumo wrestler', 150, 'about 150 kg'], ['Grand piano', 450, 'about 450 kg'], ['Dairy cow', 700, 'about 700 kg'], ['Heaviest pumpkin ever grown', 1247, 'over 1,200 kg'], ['Hippo', 1500, 'about 1,500 kg']],
-    'The heaviest pumpkin ever grown outweighed a dairy cow and a grand piano put together.', 'One of these grew in a garden.'),
+  s('weight', T, 'kg', [['Sumo wrestler', 150, 'about 150 kg'], ['Grand piano', 450, 'about 450 kg'], ['Dairy cow', 700, 'about 700 kg'], ['Heaviest pumpkin ever grown', 1431, 'about 1,430 kg'], ['White rhino', 2300, 'about 2,300 kg']],
+    'The heaviest pumpkin ever grown tipped the scales at 1,431 kg — as much as two dairy cows.', 'One of these grew in a garden.'),
   s('strength', T, '× its own weight', [['Bald eagle', 0.5, 'carries about ½× its weight'], ['Champion weightlifter', 3, 'lifts about 3×'], ['Gorilla', 10, 'lifts about 10×'], ['Leafcutter ant', 50, 'carries about 50×'], ['Dung beetle', 1141, 'pulls 1,141×']],
     'A dung beetle can pull 1,141 times its own weight — like a person dragging six double-decker buses.', 'Pound for pound, who is strongest?'),
   s('count', T, 'words', [['Gettysburg Address', 272], ['Hamlet', 30000, 'about 30,000 words'], ['War and Peace', 587000, 'about 587,000 words'], ['King James Bible', 783000, 'about 783,000 words'], ['The Harry Potter series', 1084000, 'about 1.08 million words']],

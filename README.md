@@ -79,7 +79,8 @@ The fun-stats deck was checked against sources in November 2026. Soft numbers ar
 - Bite force: Field & Stream and BBC Science Focus lists. Only the crocodile figure was measured directly; the rest are estimates.
 - LEGO piece counts: Brick Fanatics "biggest LEGO sets" list.
 - Caffeine: CSPI caffeine chart. Scoville: Guinness for Pepper X and Carolina Reaper, typical mid-range values for the rest.
-- Not checked against a source (written from memory): candy serving counts for Hershey's Kisses and Reese's Pieces, fruit sugar, McDonald's calories, trophy weights, sport speed records, part counts for a piano, car and 747.
+- World records, rechecked November 2026 because they keep falling: marathon 1:59:30 (Sabastian Sawe, London 2026, ratified by World Athletics), Rubik's Cube single 2.51 s (Xuanyi Geng, October 2026, from news reports of the WCA result), heaviest pumpkin 1,431.5 kg (Ron Wallace, October 2026, Guinness). Reese's Pieces serving of 51 pieces is from Hershey's SmartLabel.
+- Not checked against a source (written from memory): candy serving count for Hershey's Kisses, fruit sugar, McDonald's calories, trophy weights, sport speed records, part counts for a piano, car and 747.
 
 The classic deck's figures were written from general knowledge and have not been checked against sources. Most are textbook values. These are the ones to verify before sharing widely, because sources vary or the number is an estimate:
 
