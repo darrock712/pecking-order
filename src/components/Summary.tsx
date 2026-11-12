@@ -72,6 +72,15 @@ export function Summary({ day, record, sets, stats, fresh, muted, onPractice, on
         <span>/{DAY_MAX}</span>
       </p>
 
+      <div className="meter" role="img" aria-label={`Today ${total} out of ${DAY_MAX}${stats.played > 1 ? `, your average ${stats.average}` : ''}`}>
+        <div className="meter-fill" style={{ width: `${total}%` }} />
+        {stats.played > 1 && (
+          <div className="meter-avg" style={{ left: `${stats.average}%` }}>
+            <span>your average</span>
+          </div>
+        )}
+      </div>
+
       <ul className="recap">
         {record.rounds.map((round, i) => (
           <li key={i}>

@@ -151,7 +151,19 @@ export default function App() {
       )
     } else {
       const set = sets[roundIndex]
+      const played = record?.rounds ?? []
       content = (
+        <>
+          <div className="pips" aria-label={`Round ${roundIndex + 1} of 3`}>
+            {sets.map((_, i) => (
+              <span key={i} className={`pip ${i < played.length ? 'done' : i === roundIndex ? 'current' : ''}`}>
+                {i < played.length ? played[i].score : i + 1}
+              </span>
+            ))}
+            <span className="pips-total">
+              <b>{scoreDay(played)}</b> pts
+            </span>
+          </div>
         <Round
           key={`${day}-${roundIndex}`}
           set={set}
@@ -168,6 +180,7 @@ export default function App() {
             setRoundIndex(roundIndex + 1)
           }}
         />
+        </>
       )
     }
   }

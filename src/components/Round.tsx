@@ -3,7 +3,7 @@ import { shuffledOrder } from '../game/daily'
 import { ROUND_MAX, isPerfectRound, scoreRound, verdict } from '../game/scoring'
 import type { PuzzleSet, RoundResult } from '../game/types'
 import { playFanfare, playMark, playTick, prefersReducedMotion } from '../lib/feedback'
-import { formatValue, isCountable } from '../lib/format'
+import { formatValue, isCountable, scaleValues } from '../lib/format'
 import { Confetti, CountUp } from './Effects'
 
 interface Props {
@@ -20,10 +20,13 @@ interface Props {
   onNext: () => void
 }
 
+/** arrange → reveal (tiles resolve one by one) → done (verdict shown, tiles slide into the true order). */
 type Phase = 'arrange' | 'reveal' | 'done'
 
 const STEP_MS = 650
 const FINAL_PAUSE_MS = 500
+const SETTLE_MS = 1100
+const INTERVAL_KEYS = ['year', 'temp']
 
 const move = (order: number[], from: number, to: number) => {
   const next = [...order]
@@ -36,7 +39,11 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
   const [order, setOrder] = useState(() => shuffledOrder(count, seed))
   const [selected, setSelected] = useState<number | null>(null)
   const [phase, setPhase] = useState<Phase>('arrange')
+  // The player's answer, frozen at lock-in. `order` keeps driving the layout so
+  // the tiles can slide into the correct order afterwards.
+  const [locked, setLocked] = useState<RoundResult | null>(null)
   const [revealed, setRevealed] = useState(0)
+  const [settled, setSettled] = useState(false)
   const [drag, setDrag] = useState<{ item: number; offset: number } | null>(null)
   const [announcement, setAnnouncement] = useState('')
 
@@ -44,26 +51,24 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
   const pointer = useRef<{ item: number; startY: number; startPos: number; moved: boolean } | null>(null)
   const nextRef = useRef<HTMLButtonElement>(null)
 
-  const result = useMemo(() => scoreRound(order), [order])
+  const scale = useMemo(
+    () => scaleValues(set.items.map(([, value]) => value), INTERVAL_KEYS.includes(set.key)),
+    [set],
+  )
   const [first, last] = set.rule.split(' → ')
   const ruleHidden = hard && phase === 'arrange'
   const name = (item: number) => set.items[item][0]
 
   // The reveal: tiles resolve one at a time from the top, with a held beat before the last.
   useEffect(() => {
-    if (phase !== 'reveal') return
-    if (prefersReducedMotion()) {
-      setRevealed(count)
-      setPhase('done')
-      return
-    }
+    if (phase !== 'reveal' || !locked) return
     const timers: number[] = []
     for (let i = 0; i < count; i++) {
       const delay = 350 + i * STEP_MS + (i === count - 1 ? FINAL_PAUSE_MS : 0)
       timers.push(
         window.setTimeout(() => {
           setRevealed(i + 1)
-          playMark(result.marks[i], muted)
+          playMark(locked.marks[i], muted)
         }, delay),
       )
     }
@@ -71,17 +76,25 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
     timers.push(
       window.setTimeout(() => {
         setPhase('done')
-        if (isPerfectRound(result)) playFanfare(muted)
+        if (isPerfectRound(locked)) playFanfare(muted)
       }, end),
     )
     return () => timers.forEach(clearTimeout)
-    // The order is frozen once the reveal starts, so `result` cannot change underneath it.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase])
+  }, [phase, locked, count, muted])
 
+  // After the verdict has had a moment, slide every tile to where it really belongs.
   useEffect(() => {
-    if (phase === 'done') nextRef.current?.focus({ preventScroll: true })
-  }, [phase])
+    if (phase !== 'done') return
+    nextRef.current?.focus({ preventScroll: true })
+    const timer = window.setTimeout(
+      () => {
+        setOrder(set.items.map((_, i) => i))
+        setSettled(true)
+      },
+      prefersReducedMotion() ? 0 : SETTLE_MS,
+    )
+    return () => clearTimeout(timer)
+  }, [phase, set])
 
   const reorder = (from: number, to: number) => {
     if (from === to) return
@@ -158,12 +171,20 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
   }
 
   const lock = () => {
+    const result = scoreRound(order)
     setSelected(null)
+    setLocked(result)
     onLock(result)
-    setPhase('reveal')
+    if (prefersReducedMotion()) {
+      // No staged reveal: show everything at once.
+      setRevealed(count)
+      setPhase('done')
+    } else {
+      setPhase('reveal')
+    }
   }
 
-  const perfect = phase === 'done' && isPerfectRound(result)
+  const perfect = phase === 'done' && !!locked && isPerfectRound(locked)
 
   return (
     <section className="round" aria-label={label}>
@@ -189,13 +210,15 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
       <ol className="tiles" ref={listRef} style={{ ['--count' as string]: count }}>
         {set.items.map((item, id) => {
           const position = order.indexOf(id)
-          const shown = phase !== 'arrange' && position < revealed
-          const mark = shown ? result.marks[position] : undefined
+          // Where the player put this item, which is what the colour reports on.
+          const guessed = locked ? locked.order.indexOf(id) : position
+          const shown = !!locked && guessed < revealed
+          const mark = shown ? locked.marks[guessed] : undefined
           const dragging = drag?.item === id
           return (
             <li
               key={id}
-              className={['tile-slot', dragging && 'dragging'].filter(Boolean).join(' ')}
+              className={['tile-slot', dragging && 'dragging', settled && 'settling'].filter(Boolean).join(' ')}
               style={{
                 top: `calc(var(--row) * ${position})`,
                 transform: dragging ? `translateY(${drag.offset}px) scale(1.03)` : undefined,
@@ -230,11 +253,12 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
                     ) : (
                       formatValue(item, set.unit)
                     )}
-                    {mark !== 'hit' && <small>belongs at {id + 1}</small>}
+                    {mark !== 'hit' && !settled && <small>belongs at {id + 1}</small>}
                   </span>
                 ) : (
                   phase === 'arrange' && <span className="grip" aria-hidden="true">⋮⋮</span>
                 )}
+                {shown && <span className="bar" aria-hidden="true" style={{ width: `${scale.fractions[id] * 100}%` }} />}
               </button>
             </li>
           )
@@ -250,15 +274,16 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
         </button>
       )}
 
-      {phase === 'done' && (
+      {phase === 'done' && locked && (
         <div className="result" aria-live="polite">
           {perfect && <Confetti />}
-          <p className={`verdict ${perfect ? 'perfect' : ''}`}>{verdict(order)}</p>
+          <p className={`verdict ${perfect ? 'perfect' : ''}`}>{verdict(locked.order)}</p>
           <p className="points">
-            +<CountUp value={result.score} places={0} /> <span>of {ROUND_MAX}</span>
+            +<CountUp value={locked.score} places={0} /> <span>of {ROUND_MAX}</span>
           </p>
           {hard && <p className="rule-reveal">The rule was: {set.rule}</p>}
           <p className="surprise">{set.surprise}</p>
+          {scale.log && <p className="scale-note">Bars use a log scale. The real gaps are even bigger.</p>}
           <button type="button" className="primary" ref={nextRef} onClick={onNext}>
             {nextLabel}
           </button>
