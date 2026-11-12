@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { msUntilNextDay } from '../game/daily'
-import { DAY_MAX, isPerfectRound, scoreDay, shareText } from '../game/scoring'
+import { DAY_MAX, isPerfectRound, roundTone, scoreDay, shareText } from '../game/scoring'
 import type { Stats } from '../game/stats'
 import type { DayRecord, Mark, PuzzleSet } from '../game/types'
 import { playFanfare } from '../lib/feedback'
 import { formatCountdown } from '../lib/format'
+import { Bird } from './Bird'
 import { Confetti, CountUp } from './Effects'
 
 interface Props {
@@ -31,6 +32,8 @@ function headline(total: number, perfectDay: boolean) {
 export function Summary({ day, record, sets, stats, fresh, muted, onPractice, onArchive }: Props) {
   const total = scoreDay(record.rounds)
   const perfectDay = record.rounds.every(isPerfectRound)
+  // The best round wears the crown, shared on a tie, unless nothing scored.
+  const best = Math.max(1, ...record.rounds.map((r) => r.score))
   const [copied, setCopied] = useState(false)
   const [remaining, setRemaining] = useState(() => msUntilNextDay(new Date()))
 
@@ -65,20 +68,35 @@ export function Summary({ day, record, sets, stats, fresh, muted, onPractice, on
   return (
     <section className="summary" aria-label="Today’s result">
       {fresh && perfectDay && <Confetti pieces={70} />}
-      <p className="round-label">Pecking Order #{day}{record.hard ? ' · 🔥 hard mode' : ''}</p>
-      <h2 className="headline">{headline(total, perfectDay)}</h2>
-      <p className="total">
-        {fresh ? <CountUp value={total} places={0} ms={1100} /> : total}
-        <span>/{DAY_MAX}</span>
-      </p>
+      <div className="hero scoreboard">
+        <p className="hero-top">
+          <span>No. {day}</span>
+          <span>{record.hard ? '🔥 Hard mode' : 'Final score'}</span>
+        </p>
 
-      <div className="meter" role="img" aria-label={`Today ${total} out of ${DAY_MAX}${stats.played > 1 ? `, your average ${stats.average}` : ''}`}>
-        <div className="meter-fill" style={{ width: `${total}%` }} />
-        {stats.played > 1 && (
-          <div className="meter-avg" style={{ left: `${stats.average}%` }}>
-            <span>your average</span>
-          </div>
-        )}
+        <ol className="flock" aria-label="Points per round">
+          {record.rounds.map((round, i) => (
+            <li key={i} style={{ animationDelay: `${i * 0.18}s` }}>
+              <Bird size={46} tone={roundTone(round.score)} crown={round.score === best} />
+              <b>{round.score}</b>
+            </li>
+          ))}
+        </ol>
+
+        <h2 className="headline">{headline(total, perfectDay)}</h2>
+        <p className="total">
+          {fresh ? <CountUp value={total} places={0} ms={1100} /> : total}
+          <span>/{DAY_MAX}</span>
+        </p>
+
+        <div className="meter" role="img" aria-label={`Today ${total} out of ${DAY_MAX}${stats.played > 1 ? `, your average ${stats.average}` : ''}`}>
+          <div className="meter-fill" style={{ width: `${total}%` }} />
+          {stats.played > 1 && (
+            <div className="meter-avg" style={{ left: `${stats.average}%` }}>
+              <span>your average</span>
+            </div>
+          )}
+        </div>
       </div>
 
       <ul className="recap">
