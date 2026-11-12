@@ -47,16 +47,16 @@ export function rng(seed: number): () => number {
 }
 
 /**
- * Starting order for a round. Never the solved order and never its exact
- * reverse, so the answer can't be had by doing nothing or by flipping the list.
+ * Starting order for a round. At most one item starts in its correct place and
+ * the list is never the exact reverse, so the answer always takes real thought.
  */
 export function shuffledOrder(count: number, seed: number): number[] {
   const random = rng(seed)
   const solved = Array.from({ length: count }, (_, i) => i)
   const isGiveaway = (o: number[]) =>
-    o.every((v, i) => v === i) || o.every((v, i) => v === count - 1 - i)
+    o.filter((v, i) => v === i).length > 1 || o.every((v, i) => v === count - 1 - i)
 
-  for (let attempt = 0; attempt < 20; attempt++) {
+  for (let attempt = 0; attempt < 50; attempt++) {
     const order = [...solved]
     for (let i = count - 1; i > 0; i--) {
       const j = Math.floor(random() * (i + 1))
@@ -64,7 +64,7 @@ export function shuffledOrder(count: number, seed: number): number[] {
     }
     if (!isGiveaway(order)) return order
   }
-  // Practically unreachable; a rotation is neither solved nor reversed for count > 2.
+  // Practically unreachable; a rotation has no item in place and is not the reverse.
   return [...solved.slice(1), solved[0]]
 }
 

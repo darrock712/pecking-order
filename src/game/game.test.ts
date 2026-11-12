@@ -69,12 +69,12 @@ describe('setsForDay', () => {
 })
 
 describe('shuffledOrder', () => {
-  it('is deterministic, a permutation, and never solved or reversed', () => {
+  it('is deterministic, a permutation, and never a giveaway', () => {
     for (let seed = 0; seed < 500; seed++) {
       const order = shuffledOrder(5, seed)
       expect(order).toEqual(shuffledOrder(5, seed))
       expect([...order].sort()).toEqual(SOLVED)
-      expect(order).not.toEqual(SOLVED)
+      expect(order.filter((v, i) => v === i).length).toBeLessThanOrEqual(1)
       expect(order).not.toEqual([4, 3, 2, 1, 0])
     }
   })
