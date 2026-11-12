@@ -18,6 +18,13 @@ const RULES = {
   temp: 'Coldest → hottest',
   time: 'Quickest → longest',
   distance: 'Nearest → farthest',
+  serving: 'Fewest in one serving → most',
+  subs: 'Fewest subscribers → most',
+  pieces: 'Fewest pieces → most',
+  strength: 'Weakest → strongest',
+  spicy: 'Mildest → spiciest',
+  caffeine: 'Least caffeine → most',
+  sugar: 'Least sugar → most',
 } as const
 
 export type RuleKey = keyof typeof RULES
@@ -33,7 +40,7 @@ const s = (
 
 const E = 'easy', M = 'medium', T = 'twist'
 
-export const SETS: PuzzleSet[] = [
+const CLASSIC: PuzzleSet[] = [
   // ───────────────────────────── easy ─────────────────────────────
   s('weight', E, 'kg', [['House cat', 4.5], ['Grey wolf', 40], ['Lion', 190], ['Polar bear', 450], ['Hippo', 1500]],
     'A polar bear weighs more than two lions put together.', 'Today starts with a lion that gets badly outweighed.'),
@@ -280,3 +287,81 @@ export const SETS: PuzzleSet[] = [
   s('height', T, 'm', [['Big Ben', 96], ['Great Pyramid of Giza', 139], ['Empire State Building', 443], ['Tallest wave ever recorded', 524], ['Burj Khalifa', 828]],
     'In 1958 a wave in Lituya Bay, Alaska, surged 524 m up the hillside — higher than the Empire State Building.', 'A wave taller than a skyscraper.'),
 ]
+
+/**
+ * "Fun stats": snack labels, subscriber counts, bite forces, piece counts.
+ * Label and subscriber figures drift, so every set keeps wide gaps between
+ * neighbours and soft numbers are shown as "about". Sources are in the README.
+ */
+const FUN: PuzzleSet[] = [
+  // ───────────────────────────── easy ─────────────────────────────
+  s('serving', E, 'per serving', [['Pop-Tarts', 1, '1 pastry'], ['Oreos', 3, '3 cookies'], ['Ritz crackers', 5, '5 crackers'], ['Doritos', 12, 'about 12 chips'], ['Goldfish crackers', 55, '55 pieces']],
+    'One serving of Goldfish is 55 crackers. One serving of Pop-Tarts is a single pastry, even though they come in packs of two.', 'How many is “one serving”, really?'),
+  s('subs', E, 'million', [['PewDiePie', 110, 'about 110 million'], ['Vlad and Niki', 150, 'about 150 million'], ['Cocomelon', 200, 'about 200 million'], ['T-Series', 316, 'about 316 million'], ['MrBeast', 520, 'about 520 million']],
+    'MrBeast passed 500 million YouTube subscribers in 2026 — about as many as T-Series and Cocomelon put together.', 'YouTube’s giants, ranked by subscribers.'),
+  s('pieces', E, 'pieces', [['Dominoes in a standard set', 28], ['Blocks in Jenga', 54], ['Tiles in Scrabble', 100], ['Crayons in Crayola’s biggest box', 152], ['LEGO Millennium Falcon', 7541]],
+    'The big LEGO Millennium Falcon has 7,541 pieces — as many as 139 Jenga towers.', 'What’s in the box? Count the pieces.'),
+  s('strength', E, 'psi', [['Human bite', 160, 'about 160 psi'], ['Lion bite', 650, 'about 650 psi'], ['Grizzly bear bite', 975, 'about 975 psi'], ['Hippo bite', 1800, 'about 1,800 psi'], ['Saltwater crocodile bite', 3700, 'about 3,700 psi']],
+    'A hippo eats plants, yet it bites nearly three times harder than a lion.', 'Whose bite is worst? Not the one you fear.'),
+  s('spicy', E, 'Scoville units', [['Bell pepper', 0], ['Jalapeño', 5000, 'about 5,000'], ['Habanero', 200000, 'about 200,000'], ['Ghost pepper', 1000000, 'about 1 million'], ['Carolina Reaper', 1640000, 'about 1.6 million']],
+    'A Carolina Reaper is over 300 times hotter than a jalapeño.', 'Five peppers, from harmless to regrettable.'),
+  s('height', E, 'cm', [['Simone Biles', 142], ['Lionel Messi', 170], ['Usain Bolt', 195], ['Shaquille O’Neal', 216], ['Robert Wadlow, tallest person ever', 272]],
+    'Robert Wadlow stood 272 cm — more than half a metre taller than Shaq.', 'Line up five famous people by height.'),
+  s('weight', E, 'g', [['Table tennis ball', 2.7], ['Golf ball', 46], ['Baseball', 145], ['Basketball', 620], ['Bowling ball', 7260]],
+    'A golf ball weighs as much as 17 table tennis balls.', 'Five balls on the scales.'),
+  s('count', E, '', [['Hearts in an octopus', 3], ['Stomach chambers in a cow', 4], ['Arms on an octopus', 8], ['Teeth in an adult human', 32], ['Teeth in a great white shark', 300, 'about 300']],
+    'An octopus has three hearts, and two of them only pump blood through the gills.', 'Body parts you never counted.'),
+
+  // ──────────────────────────── medium ────────────────────────────
+  s('pieces', M, 'pieces', [['LEGO Bonsai Tree', 878], ['LEGO Typewriter', 2079], ['LEGO Hogwarts Castle', 6020], ['LEGO Titanic', 9090], ['LEGO World Map', 11695]],
+    'The LEGO World Map beats the Titanic on piece count, but most of its 11,695 pieces are tiny round tiles.', 'Five LEGO sets, small to enormous.'),
+  s('serving', M, 'per serving', [['Triscuits', 6, '6 crackers'], ['Lay’s Classic', 15, 'about 15 chips'], ['Cheetos', 21, 'about 21 pieces'], ['Cheez-Its', 27, '27 crackers'], ['Fritos', 32, 'about 32 chips']],
+    'Every one of these servings weighs about the same — roughly 28 grams. Only the count changes.', 'Same weight, very different handfuls.'),
+  s('caffeine', M, 'mg', [['Can of Coca-Cola', 34], ['Can of Mountain Dew', 54], ['Small can of Red Bull', 80], ['Can of Monster', 160], ['5-hour Energy shot', 200]],
+    'A 57 ml 5-hour Energy shot carries more caffeine than a full-size can of Monster.', 'Which drink wakes you up the most?'),
+  s('sugar', M, 'g', [['A lemon', 2, 'about 2 g'], ['A cup of strawberries', 7, 'about 7 g'], ['A banana', 14, 'about 14 g'], ['An apple', 19, 'about 19 g'], ['A mango', 46, 'about 46 g']],
+    'A medium apple has more sugar than a banana, and one mango has more than a can of cola.', 'The sweetest fruit isn’t the obvious one.'),
+  s('calories', M, 'kcal', [['McDonald’s apple slices', 15], ['McDonald’s hamburger', 250], ['McDonald’s medium fries', 320], ['Big Mac', 580], ['McDonald’s large chocolate shake', 800]],
+    'A large chocolate shake has more calories than a Big Mac.', 'One menu, five very different numbers.'),
+  s('count', M, '', [['Spots on a pair of dice', 42], ['Squares on a chessboard', 64], ['Stitches on a baseball', 108], ['Dimples on a golf ball', 336, 'about 336'], ['Kernels on an ear of corn', 800, 'about 800']],
+    'Every Major League baseball is stitched by hand: 108 double stitches.', 'Tiny details you’ve never counted.'),
+  s('speed', M, 'km/h', [['Usain Bolt at top speed', 44.7], ['Fastest baseball pitch', 169], ['Fastest tennis serve', 263], ['Fastest Formula 1 race speed', 372.5], ['Fastest badminton smash', 565]],
+    'A badminton shuttlecock has been smashed at 565 km/h — far faster than a Formula 1 car has ever gone in a race.', 'The fastest thing here is the lightest.'),
+  s('height', M, 'cm', [['Muggsy Bogues', 160], ['Stephen Curry', 188], ['LeBron James', 206], ['Victor Wembanyama', 224], ['An NBA hoop', 305]],
+    'Muggsy Bogues played 14 NBA seasons at 160 cm — barely more than half the height of the hoop.', 'Four NBA players and the rim.'),
+
+  // ──────────────────────────── twist ─────────────────────────────
+  s('subs', T, 'million', [['The New York Times', 12, 'about 12 million'], ['Xbox Game Pass', 34, 'about 34 million'], ['Disney+', 130, 'about 130 million'], ['Netflix', 300, 'about 300 million'], ['MrBeast on YouTube', 520, 'about 520 million']],
+    'More people subscribe to MrBeast than to Netflix and Disney+ combined — though his subscription is free.', 'One of these subscriptions costs nothing.'),
+  s('serving', T, 'per serving', [['Tic Tacs', 1, '1 mint'], ['Swedish Fish', 5, '5 pieces'], ['Hershey’s Kisses', 7, '7 pieces'], ['Haribo Goldbears', 13, '13 pieces'], ['Reese’s Pieces', 51, '51 pieces']],
+    'A serving of Tic Tacs is one mint. It weighs under half a gram, so the US label can say 0 g sugar for a sweet that is almost all sugar.', 'One sweet’s serving size is exactly one.'),
+  s('strength', T, 'psi', [['German shepherd bite', 238, 'about 240 psi'], ['Lion bite', 650, 'about 650 psi'], ['Tiger bite', 1050, 'about 1,050 psi'], ['Gorilla bite', 1300, 'about 1,300 psi'], ['Jaguar bite', 1500, 'about 1,500 psi']],
+    'A lion has the weakest bite of these big cats. A gorilla, which mostly eats plants, bites twice as hard.', 'The king of the jungle loses this one.'),
+  s('spicy', T, 'Scoville units', [['Sriracha', 2200, 'about 2,200'], ['Cayenne pepper', 40000, 'about 40,000'], ['Ghost pepper', 1000000, 'about 1 million'], ['Pepper X', 2690000, 'about 2.7 million'], ['Pure capsaicin', 16000000, '16 million']],
+    'Sriracha is milder than most jalapeños. Pure capsaicin is about 7,000 times hotter.', 'A famous hot sauce is milder than you think.'),
+  s('caffeine', T, 'mg', [['Cup of decaf coffee', 2, 'about 2 mg'], ['Cup of green tea', 28, 'about 28 mg'], ['Shot of espresso', 63, 'about 63 mg'], ['Cup of filter coffee', 95, 'about 95 mg'], ['Starbucks grande brewed coffee', 310, 'about 310 mg']],
+    'A shot of espresso has less caffeine than a plain cup of coffee, and decaf still isn’t zero.', 'The strongest-tasting coffee isn’t the strongest.'),
+  s('sugar', T, 'g', [['Krispy Kreme glazed doughnut', 10], ['Snickers bar', 28], ['Can of Coca-Cola', 39], ['Starbucks grande Caramel Frappuccino', 54], ['Bottle of Mountain Dew', 77]],
+    'A can of Coke has almost four times the sugar of a glazed Krispy Kreme doughnut.', 'The doughnut is not the villain today.'),
+  s('weight', T, 'kg', [['A football', 0.43, '430 grams'], ['Olympic gold medal', 0.529, '529 grams'], ['Oscar statuette', 3.86], ['FIFA World Cup trophy', 6.175], ['Stanley Cup', 15.6]],
+    'An Olympic gold medal is mostly silver. Only about 6 grams of it is gold.', 'Five prizes people would do anything to lift.'),
+  s('pieces', T, 'parts', [['Rubik’s Cube', 26, '26 small cubes'], ['Mechanical watch', 130, 'about 130'], ['Grand piano', 12000, 'about 12,000'], ['Car', 30000, 'about 30,000'], ['Boeing 747', 6000000, 'about 6 million']],
+    'A grand piano has around 12,000 parts, and a Boeing 747 has about six million — half of them fasteners.', 'How many parts does it take?'),
+]
+
+/**
+ * Deals the two decks into one: within each difficulty the pools alternate
+ * classic, fun, classic, fun… and the leftovers follow. Classic goes first so
+ * day 1 never changes, and a fun-stats day turns up every other day.
+ */
+function interleave(first: readonly PuzzleSet[], second: readonly PuzzleSet[]): PuzzleSet[] {
+  return ([E, M, T] as const).flatMap((difficulty) => {
+    const a = first.filter((set) => set.difficulty === difficulty)
+    const b = second.filter((set) => set.difficulty === difficulty)
+    return Array.from({ length: Math.max(a.length, b.length) }, (_, i) => [a[i], b[i]])
+      .flat()
+      .filter((set): set is PuzzleSet => set !== undefined)
+  })
+}
+
+export const SETS: PuzzleSet[] = interleave(CLASSIC, FUN)
