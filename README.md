@@ -8,10 +8,12 @@ It takes about a minute a day, runs entirely in the browser, and needs no accoun
 
 - **Three rounds a day**: a warm-up, a trickier one, and a twist round built around something counterintuitive.
 - **One attempt per round**, so the reveal matters. Tiles flip green (right spot), amber (one place off) or red, with the real value beside each.
+- **The reveal shows scale**: each tile grows a bar for its value, then every tile slides to where it really belongs, so you see how wrong (or right) you were at a glance.
 - **Near misses are named**: "one swap away" rather than a bare score.
 - **Hard mode** hides the rule. You get one solved example set and have to work out what the order means before arranging your own.
 - **Streak that counts days played**, not days won. A low score never breaks it.
 - **Spoiler-free sharing**: an emoji grid plus a teaser line.
+- **Progress at a glance**: round pips with a running score, and a meter comparing today with your average.
 - **Practice rounds** and an **archive** of past days, neither of which affects stats.
 - Drag, tap-to-swap, or arrow keys; screen-reader labels and live announcements; light and dark themes; reduced-motion support; installable and playable offline.
 
@@ -51,7 +53,7 @@ src/
     sets.ts       the puzzle content
     sets.test.ts  content rules, enforced in CI
   components/   Round (arrange + reveal), Summary, visual effects
-  lib/          number formatting, synthesised sound and haptics
+  lib/          number formatting, bar scaling, synthesised sound and haptics
 ```
 
 Design decisions worth knowing:
@@ -64,7 +66,7 @@ Design decisions worth knowing:
 
 ## Content
 
-90 sets, enough for 30 days; after that the cycle repeats. `npm test` checks that every set has five unique items in rising order, values far enough apart to be a fair question (at least 8% apart, or 3 years / 5 degrees), a surprise line, a short teaser, and a same-rule partner for hard mode.
+120 sets, enough for 40 days; after that the cycle repeats. `npm test` checks that every set has five unique items in rising order, values far enough apart to be a fair question (at least 8% apart, or 3 years / 5 degrees), a surprise line, a short teaser, and a same-rule partner for hard mode.
 
 The figures were written from general knowledge and have not been checked against sources. Most are textbook values. These are the ones to verify before sharing widely, because sources vary or the number is an estimate:
 
@@ -77,6 +79,8 @@ The figures were written from general knowledge and have not been checked agains
 - Kiwi and emu egg weights; lion's mane jellyfish and bootlace worm lengths
 - Khmer alphabet letter count (depends on what is counted)
 - Populations (2020s figures; these drift)
+- Taste bud counts, scallop and box jellyfish eye counts, density of fresh snow
+- Records: oldest dog, cat and goldfish; deepest whale and scuba dives; the 1958 Lituya Bay wave (524 m is the run-up height on the hillside)
 - Great Wall length (21,196 km is the official survey including all branches)
 
 ## Deploy
@@ -92,4 +96,4 @@ The build uses a relative base path, so it works at a domain root or under `/<re
 Not built, on purpose, because it needs a server:
 
 - "You beat X% of players today" and "only 12% got round 3 perfect". A single serverless function with a key-value store would do: `POST /result {day, hard, scores[3]}` increments per-day histogram buckets, `GET /stats/:day` returns them. No accounts; one submission per browser, enforced loosely with a local flag.
-- More content. 30 days is a starting point, and the validation tests make adding sets safe.
+- More content. 40 days is a starting point, and the validation tests make adding sets safe.
