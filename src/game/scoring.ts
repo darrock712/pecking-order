@@ -26,6 +26,11 @@ export function scoreRound(order: readonly number[]): RoundResult {
 
 export const isPerfectRound = (r: RoundResult) => r.marks.every((m) => m === 'hit')
 
+/** The colour of the bird that lands for a round: green from 80% of the points, amber from 40%. */
+export function roundTone(score: number): Mark {
+  return score >= ROUND_MAX * 0.8 ? 'hit' : score >= ROUND_MAX * 0.4 ? 'near' : 'miss'
+}
+
 export function scoreDay(rounds: readonly RoundResult[]): number {
   const total = rounds.reduce((sum, r) => sum + r.score, 0)
   const perfectDay = rounds.length === 3 && rounds.every(isPerfectRound)

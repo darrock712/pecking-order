@@ -5,7 +5,7 @@ import { Round } from './components/Round'
 import { Summary } from './components/Summary'
 import { SETS } from './data/sets'
 import { dateForDay, dayNumber, exampleFor, setsForDay } from './game/daily'
-import { DAY_MAX, ROUND_MAX, scoreDay } from './game/scoring'
+import { DAY_MAX, roundTone, scoreDay } from './game/scoring'
 import { computeStats } from './game/stats'
 import { loadSave, storeSave } from './game/storage'
 import type { PuzzleSet, RoundResult, Save } from './game/types'
@@ -176,7 +176,7 @@ export default function App() {
           <div className="perch" aria-label={`Round ${roundIndex + 1} of 3`}>
             {sets.map((_, i) => {
               const result = played[i]
-              const tone = !result ? undefined : result.score >= ROUND_MAX * 0.8 ? 'hit' : result.score >= ROUND_MAX * 0.4 ? 'near' : 'miss'
+              const tone = result && roundTone(result.score)
               return (
                 <span key={i} className={`perch-slot ${result ? 'done' : i === roundIndex ? 'current' : ''}`}>
                   {tone ? <Bird size={30} tone={tone} /> : <i />}
