@@ -347,6 +347,34 @@ const FUN: PuzzleSet[] = [
     'An Olympic gold medal is mostly silver. Only about 6 grams of it is gold.', 'Five prizes people would do anything to lift.'),
   s('pieces', T, 'parts', [['Rubik’s Cube', 26, '26 small cubes'], ['Mechanical watch', 130, 'about 130'], ['Grand piano', 12000, 'about 12,000'], ['Car', 30000, 'about 30,000'], ['Boeing 747', 6000000, 'about 6 million']],
     'A grand piano has around 12,000 parts, and a Boeing 747 has about six million — half of them fasteners.', 'How many parts does it take?'),
+
+  // ───────────────────────── second batch ─────────────────────────
+  s('count', E, 'stars', [['Stars on China’s flag', 5], ['Stars on Australia’s flag', 6], ['Stars on the EU flag', 12], ['Stars on Brazil’s flag', 27], ['Stars on the US flag', 50]],
+    'Brazil’s flag has 27 stars — one for each state plus the capital — laid out like the night sky over Rio.', 'Count the stars on five flags.'),
+  s('people', E, 'seats', [['Wimbledon Centre Court', 14979], ['Madison Square Garden', 19812], ['Wembley Stadium', 90000], ['Narendra Modi Stadium', 132000], ['Indianapolis Motor Speedway', 257000, 'about 257,000 seats']],
+    'The Indianapolis Motor Speedway seats more people than Wembley and the world’s biggest cricket ground put together.', 'Five venues, one sell-out crowd each.'),
+  s('weight', E, 'g', [['A cat’s brain', 30, 'about 30 g'], ['A dog’s brain', 72, 'about 72 g'], ['A human brain', 1350, 'about 1.35 kg'], ['An elephant’s brain', 5000, 'about 5 kg'], ['A sperm whale’s brain', 7800, 'about 7.8 kg']],
+    'The sperm whale has the biggest brain of any animal — nearly six times the weight of yours.', 'Who has the heaviest brain?'),
+  s('height', E, 'm', [['Great Sphinx of Giza', 20], ['Christ the Redeemer', 30], ['Statue of Liberty, without the pedestal', 46], ['Spring Temple Buddha', 128], ['Statue of Unity', 182]],
+    'India’s Statue of Unity is almost four times the height of the Statue of Liberty.', 'Five statues. One towers over the rest.'),
+
+  s('time', M, 's', [['Fastest Formula 1 pit stop', 1.8, '1.80 seconds'], ['Fastest Rubik’s Cube solve', 3, 'about 3 seconds'], ['Fastest 100 metres', 9.58, '9.58 seconds'], ['Fastest mile', 223, '3 min 43 s'], ['Fastest marathon', 7235, 'about 2 hours']],
+    'A Formula 1 crew has changed all four tyres in 1.80 seconds — faster than anyone has ever solved a Rubik’s Cube.', 'Five world records against the clock.'),
+  s('subs', M, 'million', [['Dude Perfect', 63, 'about 63 million'], ['Mark Rober', 82, 'about 82 million'], ['PewDiePie', 110, 'about 110 million'], ['Vlad and Niki', 150, 'about 150 million'], ['T-Series', 316, 'about 316 million']],
+    'Mark Rober, a former NASA engineer who builds glitter bombs, has more subscribers than Dude Perfect.', 'Trick shots, glitter bombs and nursery rhymes.'),
+  s('length', M, 'm wingspan', [['Bald eagle', 2.1], ['Wandering albatross', 3.5], ['Wright Flyer', 12.3], ['Boeing 747', 64.4], ['Airbus A380', 79.8]],
+    'The Wright brothers’ whole first flight, 37 metres, was shorter than the wingspan of a Boeing 747.', 'Wingspans, from feathers to jumbo jets.'),
+  s('count', M, 'episodes', [['Squid Game', 22], ['Stranger Things', 42], ['Breaking Bad', 62], ['Friends', 236], ['The Simpsons', 800, 'about 800']],
+    'You could watch all of Breaking Bad a dozen times before finishing The Simpsons once.', 'How long would the binge take?'),
+
+  s('calories', T, 'kcal', [['Stick of celery', 6], ['One Oreo', 53], ['Banana', 105], ['Snickers bar', 250], ['Avocado', 320, 'about 320 kcal']],
+    'A whole avocado has more calories than a Snickers bar.', 'A health food out-calories a chocolate bar.'),
+  s('weight', T, 'kg', [['Sumo wrestler', 150, 'about 150 kg'], ['Grand piano', 450, 'about 450 kg'], ['Dairy cow', 700, 'about 700 kg'], ['Heaviest pumpkin ever grown', 1247, 'over 1,200 kg'], ['Hippo', 1500, 'about 1,500 kg']],
+    'The heaviest pumpkin ever grown outweighed a dairy cow and a grand piano put together.', 'One of these grew in a garden.'),
+  s('strength', T, '× its own weight', [['Bald eagle', 0.5, 'carries about ½× its weight'], ['Champion weightlifter', 3, 'lifts about 3×'], ['Gorilla', 10, 'lifts about 10×'], ['Leafcutter ant', 50, 'carries about 50×'], ['Dung beetle', 1141, 'pulls 1,141×']],
+    'A dung beetle can pull 1,141 times its own weight — like a person dragging six double-decker buses.', 'Pound for pound, who is strongest?'),
+  s('count', T, 'words', [['Gettysburg Address', 272], ['Hamlet', 30000, 'about 30,000 words'], ['War and Peace', 587000, 'about 587,000 words'], ['King James Bible', 783000, 'about 783,000 words'], ['The Harry Potter series', 1084000, 'about 1.08 million words']],
+    'The seven Harry Potter books together are longer than the Bible.', 'A children’s series outgrows a very big book.'),
 ]
 
 /**

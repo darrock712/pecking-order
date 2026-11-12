@@ -68,7 +68,7 @@ Design decisions worth knowing:
 
 ## Content
 
-144 sets, enough for 48 days; after that the cycle repeats. They come from two decks: 120 classic sets and 24 "fun stats" sets (snack serving sizes, YouTube subscribers, bite force, LEGO piece counts, caffeine, sugar, spice). The decks are dealt alternately, so a fun-stats day turns up every other day. `npm test` checks that every set has five unique items in rising order, values far enough apart to be a fair question (at least 8% apart, or 3 years / 5 degrees), a surprise line, a short teaser, and a same-rule partner for hard mode.
+156 sets, enough for 52 days; after that the cycle repeats. They come from two decks: 120 classic sets and 36 "fun stats" sets (snack serving sizes, YouTube subscribers, bite force, LEGO piece counts, caffeine, sugar, spice, world records). The decks are dealt alternately, so a fun-stats day turns up every other day. `npm test` checks that every set has five unique items in rising order, values far enough apart to be a fair question (at least 8% apart, or 3 years / 5 degrees), a surprise line, a short teaser, and a same-rule partner for hard mode.
 
 ### Fun stats sources
 
@@ -109,4 +109,4 @@ The build uses a relative base path, so it works at a domain root or under `/<re
 Not built, on purpose, because it needs a server:
 
 - "You beat X% of players today" and "only 12% got round 3 perfect". A single serverless function with a key-value store would do: `POST /result {day, hard, scores[3]}` increments per-day histogram buckets, `GET /stats/:day` returns them. No accounts; one submission per browser, enforced loosely with a local flag.
-- More content. 48 days is a starting point, and the validation tests make adding sets safe.
+- More content. 52 days is a starting point, and the validation tests make adding sets safe.
