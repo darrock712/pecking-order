@@ -1,4 +1,4 @@
-import { setsForDay } from '../game/daily'
+import { createDealer } from '../game/daily'
 import type { Difficulty, Item, PuzzleSet } from '../game/types'
 import { MIXED } from './mixed'
 
@@ -399,4 +399,4 @@ export const SETS: PuzzleSet[] = interleave(CLASSIC, FUN)
 export const ALL_SETS: readonly PuzzleSet[] = [...SETS, ...MIXED]
 
 /** The three rounds everyone gets on a given day. */
-export const dealDay = (day: number): PuzzleSet[] => setsForDay(day, SETS, MIXED)
+export const dealDay = createDealer(SETS, MIXED)

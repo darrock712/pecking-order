@@ -87,6 +87,13 @@ describe('mixed-bag rounds', () => {
     for (let day = 1; day < MIXED_FROM; day++) expect(dealDay(day)).toEqual(setsForDay(day, SETS))
   })
 
+  it('never repeats a category within a day', () => {
+    for (let day = MIXED_FROM; day <= 400; day++) {
+      const keys = dealDay(day).map((set) => set.key)
+      expect(new Set(keys).size, `day ${day}: ${keys.join(', ')}`).toBe(3)
+    }
+  })
+
   it('shows every medium set once before any repeats', () => {
     const mediums = SETS.filter((set) => set.difficulty === 'medium')
     const seen: string[] = []

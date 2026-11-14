@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Bird } from './components/Bird'
+import { Help } from './components/Help'
 import { Home } from './components/Home'
 import { Round } from './components/Round'
 import { Summary } from './components/Summary'
@@ -68,12 +69,7 @@ export default function App() {
 
   // Midnight rollover: if the player was on yesterday's live puzzle, move them to today's.
   useEffect(() => {
-    setView((v) => {
-      if (v.kind !== 'day' || v.day !== today - 1) return v
-      setRoundIndex(save.days[today]?.rounds.length ?? 0)
-      setJustFinished(false)
-      return { kind: 'day', day: today }
-    })
+    if (view.kind === 'day' && view.day === today - 1) openDay(today)
     // Only the date changing should trigger this.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [today])
@@ -179,6 +175,7 @@ export default function App() {
           muted={save.muted}
           onPractice={startPractice}
           onArchive={() => setView({ kind: 'archive' })}
+          tomorrow={day === today && !hard ? dealDay(today + 1) : undefined}
         />
       )
     } else {
@@ -201,24 +198,24 @@ export default function App() {
               <b>{scoreDay(played)}</b> pts
             </span>
           </div>
-        <Round
-          key={`${day}-${roundIndex}`}
-          set={set}
-          example={hard ? exampleFor(set, SETS, sets) : undefined}
-          hard={hard}
-          seed={day * 10 + roundIndex}
-          label={`#${day} · ${set.units ? `Round ${roundIndex + 1} · mixed bag` : ROUND_NAMES[roundIndex]}`}
-          showHint={isNewPlayer && roundIndex === 0}
-          muted={save.muted}
-          nextLabel={roundIndex === 2 ? 'See my score' : 'Next round'}
-          firstPeck={record?.pending}
-          onPeck={(order) => peckRound(day, order)}
-          onLock={(result) => lockRound(day, result)}
-          onNext={() => {
-            setJustFinished(roundIndex === 2)
-            setRoundIndex(roundIndex + 1)
-          }}
-        />
+          <Round
+            key={`${day}-${roundIndex}`}
+            set={set}
+            example={hard ? exampleFor(set, SETS, sets) : undefined}
+            hard={hard}
+            seed={day * 10 + roundIndex}
+            label={`#${day} · ${set.units ? `Round ${roundIndex + 1} · mixed bag` : ROUND_NAMES[roundIndex]}`}
+            showHint={isNewPlayer && roundIndex === 0}
+            muted={save.muted}
+            nextLabel={roundIndex === 2 ? 'See my score' : 'Next round'}
+            firstPeck={record?.pending}
+            onPeck={(order) => peckRound(day, order)}
+            onLock={(result) => lockRound(day, result)}
+            onNext={() => {
+              setJustFinished(roundIndex === 2)
+              setRoundIndex(roundIndex + 1)
+            }}
+          />
         </>
       )
     }
@@ -267,23 +264,7 @@ export default function App() {
         </footer>
       )}
 
-      {helpOpen && (
-        <div className="backdrop" onClick={() => setHelpOpen(false)}>
-          <div className="dialog" role="dialog" aria-modal="true" aria-labelledby="help-title" onClick={(e) => e.stopPropagation()}>
-            <h2 id="help-title">How to play</h2>
-            <ul>
-              <li>Three rounds a day. Put five things in order, then lock it in.</li>
-              <li>🟩 right spot · 🟨 one place off · 🟥 two or more off.</li>
-              <li>Two pecks per round. Lock in, read the colours, then fix it once — or keep it.</li>
-              <li>Right first time scores 6 a tile. A tile you fix on the second peck scores 4.</li>
-              <li>Every point counts towards your rank, from Egg to Top Bird.</li>
-              <li>Your streak counts days played. A low score never breaks it.</li>
-              <li><strong>Hard mode</strong> hides the rule. You only get a solved example to work out what the order means.</li>
-            </ul>
-            <button type="button" className="primary" autoFocus onClick={() => setHelpOpen(false)}>Got it</button>
-          </div>
-        </div>
-      )}
+      {helpOpen && <Help onClose={() => setHelpOpen(false)} />}
     </div>
   )
 }

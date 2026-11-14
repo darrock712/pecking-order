@@ -267,80 +267,80 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
         <b>1</b> = {ruleHidden ? '?' : firstEnd}
       </p>
       <div className={mixed ? 'board mixed' : 'board'} style={{ ['--count' as string]: count }}>
-      <ol className="slots" aria-hidden="true">
-        {set.items.map((_, slot) => (
-          <li key={slot} className={slot === 0 || slot === count - 1 ? 'end' : undefined}>{slot + 1}</li>
-        ))}
-      </ol>
-      <ol className={locking ? 'tiles locking' : 'tiles'} ref={listRef}>
-        {set.items.map((item, id) => {
-          const position = order.indexOf(id)
-          // Where the player put this item, which is what the colour reports on.
-          const guessed = locked ? locked.order.indexOf(id) : position
-          const shown = !!locked && guessed < revealed
-          const mark = shown ? locked.marks[guessed] : undefined
-          const dragging = drag?.item === id
-          const unit = unitOf(set, id)
-          // During the second peck each tile carries what the first peck said about it.
-          const was = first && firstMarks && phase === 'arrange' ? first.indexOf(id) : -1
-          const wasMark = was >= 0 && firstMarks ? firstMarks[was] : undefined
-          return (
-            <li
-              key={id}
-              className={['tile-slot', dragging && 'dragging', settled && 'settling'].filter(Boolean).join(' ')}
-              style={{
-                top: `calc(var(--row) * ${position})`,
-                ['--i' as string]: position,
-                transform: dragging ? `translateY(${drag.offset}px) scale(1.03)` : undefined,
-              }}
-            >
-              <button
-                type="button"
-                className={['tile', mark, wasMark && `was-${wasMark}`, selected === id && 'selected', showHint && position === 0 && phase === 'arrange' && 'nudge']
-                  .filter(Boolean)
-                  .join(' ')}
-                disabled={phase !== 'arrange'}
-                aria-label={
-                  phase === 'arrange'
-                    ? `${item[0]}${mixed ? ` (${unit})` : ''}, position ${position + 1} of ${count}.${wasMark ? ` First peck: ${WAS[wasMark](was + 1)}.` : ''} Arrow keys move it.`
-                    : `${item[0]}, ${formatValue(item, unit)}`
-                }
-                aria-pressed={phase === 'arrange' ? selected === id : undefined}
-                onPointerDown={(e) => onPointerDown(e, id)}
-                onPointerMove={onPointerMove}
-                onPointerUp={onPointerUp}
-                onPointerCancel={onPointerUp}
-                onKeyDown={(e) => onKeyDown(e, id)}
+        <ol className="slots" aria-hidden="true">
+          {set.items.map((_, slot) => (
+            <li key={slot} className={slot === 0 || slot === count - 1 ? 'end' : undefined}>{slot + 1}</li>
+          ))}
+        </ol>
+        <ol className={locking ? 'tiles locking' : 'tiles'} ref={listRef}>
+          {set.items.map((item, id) => {
+            const position = order.indexOf(id)
+            // Where the player put this item, which is what the colour reports on.
+            const guessed = locked ? locked.order.indexOf(id) : position
+            const shown = !!locked && guessed < revealed
+            const mark = shown ? locked.marks[guessed] : undefined
+            const dragging = drag?.item === id
+            const unit = unitOf(set, id)
+            // During the second peck each tile carries what the first peck said about it.
+            const was = first && firstMarks && phase === 'arrange' ? first.indexOf(id) : -1
+            const wasMark = was >= 0 && firstMarks ? firstMarks[was] : undefined
+            return (
+              <li
+                key={id}
+                className={['tile-slot', dragging && 'dragging', settled && 'settling'].filter(Boolean).join(' ')}
+                style={{
+                  top: `calc(var(--row) * ${position})`,
+                  ['--i' as string]: position,
+                  transform: dragging ? `translateY(${drag.offset}px) scale(1.03)` : undefined,
+                }}
               >
-                <span className="tile-name">
-                  {item[0]}
-                  {mixed && !shown && <small className="tile-unit">{unit}</small>}
-                </span>
-                {shown ? (
-                  <span className="tile-value">
-                    {isCountable(item, unit) ? (
-                      <>
-                        <CountUp value={item[1]} /> {unit}
-                      </>
-                    ) : (
-                      formatValue(item, unit)
-                    )}
-                    {mark !== 'hit' && !settled && <small>belongs at {id + 1}</small>}
+                <button
+                  type="button"
+                  className={['tile', mark, wasMark && `was-${wasMark}`, selected === id && 'selected', showHint && position === 0 && phase === 'arrange' && 'nudge']
+                    .filter(Boolean)
+                    .join(' ')}
+                  disabled={phase !== 'arrange'}
+                  aria-label={
+                    phase === 'arrange'
+                      ? `${item[0]}${mixed ? ` (${unit})` : ''}, position ${position + 1} of ${count}.${wasMark ? ` First peck: ${WAS[wasMark](was + 1)}.` : ''} Arrow keys move it.`
+                      : `${item[0]}, ${formatValue(item, unit)}`
+                  }
+                  aria-pressed={phase === 'arrange' ? selected === id : undefined}
+                  onPointerDown={(e) => onPointerDown(e, id)}
+                  onPointerMove={onPointerMove}
+                  onPointerUp={onPointerUp}
+                  onPointerCancel={onPointerUp}
+                  onKeyDown={(e) => onKeyDown(e, id)}
+                >
+                  <span className="tile-name">
+                    {item[0]}
+                    {mixed && !shown && <small className="tile-unit">{unit}</small>}
                   </span>
-                ) : (
-                  phase === 'arrange' &&
-                  (wasMark ? (
-                    <span className="was" aria-hidden="true">{WAS[wasMark](was + 1)}</span>
+                  {shown ? (
+                    <span className="tile-value">
+                      {isCountable(item, unit) ? (
+                        <>
+                          <CountUp value={item[1]} /> {unit}
+                        </>
+                      ) : (
+                        formatValue(item, unit)
+                      )}
+                      {mark !== 'hit' && !settled && <small>belongs at {id + 1}</small>}
+                    </span>
                   ) : (
-                    <span className="grip" aria-hidden="true">⋮⋮</span>
-                  ))
-                )}
-                {shown && <span className="bar" aria-hidden="true" style={{ width: `${scale.fractions[id] * 100}%` }} />}
-              </button>
-            </li>
-          )
-        })}
-      </ol>
+                    phase === 'arrange' &&
+                    (wasMark ? (
+                      <span className="was" aria-hidden="true">{WAS[wasMark](was + 1)}</span>
+                    ) : (
+                      <span className="grip" aria-hidden="true">⋮⋮</span>
+                    ))
+                  )}
+                  {shown && <span className="bar" aria-hidden="true" style={{ width: `${scale.fractions[id] * 100}%` }} />}
+                </button>
+              </li>
+            )
+          })}
+        </ol>
       </div>
       <p className="end-label">
         <b>{count}</b> = {ruleHidden ? '?' : lastEnd}

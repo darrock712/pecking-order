@@ -26,30 +26,61 @@ export function msUntilNextDay(now: Date): number {
   return next.getTime() - now.getTime()
 }
 
+const pick = <T,>(pool: readonly T[], index: number): T => pool[((index % pool.length) + pool.length) % pool.length]
+
+/**
+ * The plain deal: one easy, one medium and one twist round, each pool taken in
+ * order and looping when it runs out. This is how days 1 to 4 were dealt.
+ */
+export function setsForDay(day: number, all: readonly PuzzleSet[]): PuzzleSet[] {
+  return ORDER.map((difficulty) => pick(all.filter((s) => s.difficulty === difficulty), day - 1))
+}
+
 /**
  * Mixed-bag rounds arrive on day 5 and then every other day. Starting late
  * keeps day 1 simple and leaves the days already played as they were.
  */
 export const MIXED_FROM = 5
 export const isMixedDay = (day: number) => day >= MIXED_FROM && (day - MIXED_FROM) % 2 === 0
-/** How many mixed days fall before `day`. */
-const mixedDaysBefore = (day: number) => (day <= MIXED_FROM ? 0 : Math.ceil((day - MIXED_FROM) / 2))
-
-const pick = <T,>(pool: readonly T[], index: number): T => pool[((index % pool.length) + pool.length) % pool.length]
 
 /**
- * The three rounds for a day: one easy, one medium, one twist. On a mixed day
- * a mixed-bag round takes the middle slot, and the medium set it displaced
- * waits for the next ordinary day, so nothing is skipped. Loops when content
- * runs out.
+ * Builds the function that deals a day's three rounds. From day 5 on it deals
+ * from queues instead of by index, which buys two things:
+ *
+ * - a mixed-bag round can take the middle slot on mixed days without the
+ *   medium set it displaced being skipped, and
+ * - a day never repeats a category: each slot takes the next set in its queue
+ *   whose category hasn't come up yet that day.
+ *
+ * A day's deal depends only on the days before it, so everyone gets the same
+ * rounds, and results are remembered so each day is only worked out once.
  */
-export function setsForDay(day: number, all: readonly PuzzleSet[], mixed: readonly PuzzleSet[] = []): PuzzleSet[] {
-  const mixedBefore = mixed.length > 0 ? mixedDaysBefore(day) : 0
-  return ORDER.map((difficulty) => {
-    if (difficulty !== 'medium') return pick(all.filter((s) => s.difficulty === difficulty), day - 1)
-    if (mixed.length > 0 && isMixedDay(day)) return pick(mixed, mixedBefore)
-    return pick(all.filter((s) => s.difficulty === 'medium'), day - 1 - mixedBefore)
-  })
+export function createDealer(all: readonly PuzzleSet[], mixed: readonly PuzzleSet[] = []) {
+  const pools = ORDER.map((difficulty) => all.filter((s) => s.difficulty === difficulty))
+  // Days 1 to 4 already used the first four sets of each pool.
+  const queues = pools.map((pool) => pool.slice(MIXED_FROM - 1))
+  const mixedQueue: PuzzleSet[] = []
+  const dealt: PuzzleSet[][] = []
+
+  const take = (queue: PuzzleSet[], pool: readonly PuzzleSet[], taken: readonly string[]): PuzzleSet => {
+    const fresh = (set: PuzzleSet) => !taken.includes(set.key)
+    // Top the queue up when it is empty, or when everything left in it would repeat a category.
+    if (!queue.some(fresh)) queue.push(...pool)
+    return queue.splice(Math.max(queue.findIndex(fresh), 0), 1)[0]
+  }
+
+  return (day: number): PuzzleSet[] => {
+    if (day < MIXED_FROM) return setsForDay(day, all)
+    while (dealt.length <= day - MIXED_FROM) {
+      const dealing = MIXED_FROM + dealt.length
+      const easy = take(queues[0], pools[0], [])
+      const middle =
+        mixed.length > 0 && isMixedDay(dealing) ? take(mixedQueue, mixed, []) : take(queues[1], pools[1], [easy.key])
+      const twist = take(queues[2], pools[2], [easy.key, middle.key])
+      dealt.push([easy, middle, twist])
+    }
+    return dealt[day - MIXED_FROM]
+  }
 }
 
 /** Small deterministic PRNG (mulberry32) so every player sees the same shuffle. */

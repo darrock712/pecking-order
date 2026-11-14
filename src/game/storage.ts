@@ -1,15 +1,63 @@
-import type { Save } from './types'
+import type { DayRecord, Mark, RoundResult, Save } from './types'
 
+/** Kept from before the rename to Peckish, so existing streaks carry on. */
 const KEY = 'pecking-order:v1'
 const EMPTY: Save = { days: {}, hard: false, muted: false }
+const MARKS: readonly unknown[] = ['hit', 'near', 'miss'] satisfies Mark[]
+const ROUNDS_PER_DAY = 3
+const TILES = 5
+
+const isObject = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null
+
+/** Five slots holding each of the tiles 0–4 exactly once. */
+const isOrder = (value: unknown): value is number[] =>
+  Array.isArray(value) && value.length === TILES && value.every((_, tile) => value.includes(tile))
+
+function parseRound(value: unknown): RoundResult | undefined {
+  if (!isObject(value) || !isOrder(value.order)) return undefined
+  const { order, marks, score, first } = value
+  if (!Array.isArray(marks) || marks.length !== TILES || !marks.every((m) => MARKS.includes(m))) return undefined
+  if (typeof score !== 'number' || !Number.isFinite(score)) return undefined
+  const round: RoundResult = { order, marks: marks as Mark[], score }
+  return isOrder(first) ? { ...round, first } : round
+}
+
+function parseDay(value: unknown): DayRecord | undefined {
+  if (!isObject(value) || !Array.isArray(value.rounds)) return undefined
+  // Keep the rounds up to the first damaged one, so the day can be picked up from there.
+  const rounds: RoundResult[] = []
+  for (const entry of value.rounds.slice(0, ROUNDS_PER_DAY)) {
+    const round = parseRound(entry)
+    if (!round) break
+    rounds.push(round)
+  }
+  const record: DayRecord = { rounds, hard: value.hard === true, live: value.live === true }
+  return isOrder(value.pending) && rounds.length < ROUNDS_PER_DAY ? { ...record, pending: value.pending } : record
+}
+
+/**
+ * Rebuilds a save from whatever was in storage. Anything that isn't the right
+ * shape is dropped rather than trusted: an old version, a half-written value
+ * or a hand-edited one must never be able to crash the game.
+ */
+export function parseSave(value: unknown): Save {
+  if (!isObject(value)) return { ...EMPTY }
+  const days: Save['days'] = {}
+  if (isObject(value.days)) {
+    for (const [key, entry] of Object.entries(value.days)) {
+      const day = Number(key)
+      const record = Number.isInteger(day) ? parseDay(entry) : undefined
+      if (record) days[day] = record
+    }
+  }
+  return { days, hard: value.hard === true, muted: value.muted === true }
+}
 
 /** localStorage can throw (private mode, blocked storage); the game must still run. */
 export function loadSave(): Save {
   try {
     const raw = localStorage.getItem(KEY)
-    if (!raw) return { ...EMPTY }
-    const parsed = JSON.parse(raw) as Partial<Save>
-    return { ...EMPTY, ...parsed, days: parsed.days ?? {} }
+    return raw ? parseSave(JSON.parse(raw)) : { ...EMPTY }
   } catch {
     return { ...EMPTY }
   }

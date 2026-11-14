@@ -20,6 +20,8 @@ interface Props {
   muted: boolean
   onPractice: () => void
   onArchive: () => void
+  /** Tomorrow's rounds, when it is fair to tease them (today's puzzle, rule not hidden). */
+  tomorrow?: readonly PuzzleSet[]
 }
 
 const EMOJI: Record<Mark, string> = { hit: '🟩', near: '🟨', miss: '🟥' }
@@ -31,7 +33,7 @@ function headline(total: number, perfectDay: boolean) {
   return 'Every bird starts somewhere'
 }
 
-export function Summary({ day, record, sets, stats, fresh, muted, onPractice, onArchive }: Props) {
+export function Summary({ day, record, sets, stats, fresh, muted, onPractice, onArchive, tomorrow }: Props) {
   const total = scoreDay(record.rounds)
   const perfectDay = record.rounds.every(isPerfectRound)
   // The best round wears the crown, shared on a tie, unless nothing scored.
@@ -131,6 +133,19 @@ export function Summary({ day, record, sets, stats, fresh, muted, onPractice, on
       <p className="countdown">
         Next puzzle in <strong>{formatCountdown(remaining)}</strong>
       </p>
+      {tomorrow && (
+        <p className="tomorrow">
+          <b>Tomorrow</b>
+          {tomorrow.map((set, i) => {
+            const [icon, name] = categoryFor(set.key)
+            return (
+              <span key={i}>
+                <span aria-hidden="true">{icon}</span> {name}
+              </span>
+            )
+          })}
+        </p>
+      )}
 
       <div className="secondary-row">
         <button type="button" className="secondary" onClick={onPractice}>Play a practice round</button>
