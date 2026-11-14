@@ -48,5 +48,15 @@ export function playTick(muted: boolean) {
   if (!muted) tone(330, 0, 0.05, 0.05)
 }
 
+/** Lock-in: a low thunk, then two rising clicks, like a latch closing. */
+export function playLock(muted: boolean) {
+  if (!muted) {
+    tone(170, 0, 0.1, 0.18)
+    tone(523, 0.07, 0.07, 0.1)
+    tone(784, 0.14, 0.14, 0.1)
+  }
+  vibrate([12, 30, 24])
+}
+
 export const prefersReducedMotion = () =>
   typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches

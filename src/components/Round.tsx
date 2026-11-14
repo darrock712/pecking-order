@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { shuffledOrder } from '../game/daily'
 import { ROUND_MAX, isPerfectRound, scoreRound, verdict } from '../game/scoring'
 import type { PuzzleSet, RoundResult } from '../game/types'
-import { playFanfare, playMark, playTick, prefersReducedMotion } from '../lib/feedback'
+import { playFanfare, playLock, playMark, playTick, prefersReducedMotion } from '../lib/feedback'
 import { formatValue, isCountable, scaleValues } from '../lib/format'
 import { Confetti, CountUp } from './Effects'
 
@@ -26,6 +26,8 @@ type Phase = 'arrange' | 'reveal' | 'done'
 const STEP_MS = 650
 const FINAL_PAUSE_MS = 500
 const SETTLE_MS = 1100
+// How long the "Locked in" beat holds before the reveal starts.
+const LOCK_MS = 480
 const INTERVAL_KEYS = ['year', 'temp']
 
 const move = (order: number[], from: number, to: number) => {
@@ -50,6 +52,9 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
   const listRef = useRef<HTMLOListElement>(null)
   const pointer = useRef<{ item: number; startY: number; startPos: number; moved: boolean } | null>(null)
   const nextRef = useRef<HTMLButtonElement>(null)
+  const [locking, setLocking] = useState(false)
+  const lockTimer = useRef<number | undefined>(undefined)
+  useEffect(() => () => clearTimeout(lockTimer.current), [])
 
   const scale = useMemo(
     () => scaleValues(set.items.map(([, value]) => value), INTERVAL_KEYS.includes(set.key)),
@@ -125,7 +130,7 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
   const rowHeight = () => (listRef.current ? listRef.current.offsetHeight / count : 64)
 
   const onPointerDown = (e: React.PointerEvent<HTMLButtonElement>, item: number) => {
-    if (phase !== 'arrange' || e.button > 0) return
+    if (phase !== 'arrange' || locking || e.button > 0) return
     try {
       e.currentTarget.setPointerCapture(e.pointerId)
     } catch {
@@ -157,7 +162,7 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
   }
 
   const onKeyDown = (e: React.KeyboardEvent, item: number) => {
-    if (phase !== 'arrange') return
+    if (phase !== 'arrange' || locking) return
     const position = order.indexOf(item)
     if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
       e.preventDefault()
@@ -170,9 +175,20 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
     }
   }
 
+  // A short "Locked in" beat first, so pressing the button feels like committing.
   const lock = () => {
+    if (locking) return
+    if (prefersReducedMotion()) return commit()
+    setSelected(null)
+    setLocking(true)
+    playLock(muted)
+    lockTimer.current = window.setTimeout(commit, LOCK_MS)
+  }
+
+  const commit = () => {
     const result = scoreRound(order)
     setSelected(null)
+    setLocking(false)
     setLocked(result)
     onLock(result)
     if (prefersReducedMotion()) {
@@ -207,7 +223,7 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
       )}
 
       <p className="end-label">{ruleHidden ? '?' : first}</p>
-      <ol className="tiles" ref={listRef} style={{ ['--count' as string]: count }}>
+      <ol className={locking ? 'tiles locking' : 'tiles'} ref={listRef} style={{ ['--count' as string]: count }}>
         {set.items.map((item, id) => {
           const position = order.indexOf(id)
           // Where the player put this item, which is what the colour reports on.
@@ -221,6 +237,7 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
               className={['tile-slot', dragging && 'dragging', settled && 'settling'].filter(Boolean).join(' ')}
               style={{
                 top: `calc(var(--row) * ${position})`,
+                ['--i' as string]: position,
                 transform: dragging ? `translateY(${drag.offset}px) scale(1.03)` : undefined,
               }}
             >
@@ -269,8 +286,8 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
       <p className="sr-only" aria-live="polite">{announcement}</p>
 
       {phase === 'arrange' && (
-        <button type="button" className="primary" onClick={lock}>
-          Lock it in
+        <button type="button" className={locking ? 'primary lock locking' : 'primary lock'} aria-disabled={locking} onClick={lock}>
+          <span key={locking ? 'locked' : 'idle'}>{locking ? 'Locked in ✓' : 'Lock it in'}</span>
         </button>
       )}
 
