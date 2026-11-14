@@ -15,6 +15,13 @@ export function formatValue([, value, display]: Item, unit: string): string {
   return `${formatNumber(value)} ${unit}`.trim()
 }
 
+/** "Lightest → heaviest" becomes the labels for slot 1 and the last slot. */
+export function endLabels(rule: string): [first: string, last: string] {
+  const [first, last = ''] = rule.split(' → ')
+  const capital = (text: string) => text.charAt(0).toUpperCase() + text.slice(1)
+  return [capital(first), capital(last)]
+}
+
 export function formatCountdown(ms: number): string {
   const total = Math.max(0, Math.floor(ms / 1000))
   const part = (n: number) => String(n).padStart(2, '0')

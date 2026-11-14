@@ -3,7 +3,7 @@ import { shuffledOrder } from '../game/daily'
 import { POINTS, ROUND_MAX, isPerfectRound, markOrder, scoreRound, verdict } from '../game/scoring'
 import type { Mark, PuzzleSet, RoundResult } from '../game/types'
 import { playFanfare, playLock, playMark, playTick, prefersReducedMotion } from '../lib/feedback'
-import { formatValue, isCountable, scaleValues } from '../lib/format'
+import { endLabels, formatValue, isCountable, scaleValues } from '../lib/format'
 import { Confetti, CountUp } from './Effects'
 
 interface Props {
@@ -75,7 +75,7 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
     () => scaleValues(set.items.map(([, value]) => value), INTERVAL_KEYS.includes(set.key)),
     [set],
   )
-  const [topLabel, bottomLabel] = set.rule.split(' → ')
+  const [firstEnd, lastEnd] = endLabels(set.rule)
   const ruleHidden = hard && phase === 'arrange'
   const name = (item: number) => set.items[item][0]
 
@@ -257,8 +257,16 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
         </p>
       )}
 
-      <p className="end-label">{ruleHidden ? '?' : topLabel}</p>
-      <ol className={locking ? 'tiles locking' : 'tiles'} ref={listRef} style={{ ['--count' as string]: count }}>
+      <p className="end-label">
+        <b>1</b> = {ruleHidden ? '?' : firstEnd}
+      </p>
+      <div className="board" style={{ ['--count' as string]: count }}>
+      <ol className="slots" aria-hidden="true">
+        {set.items.map((_, slot) => (
+          <li key={slot} className={slot === 0 || slot === count - 1 ? 'end' : undefined}>{slot + 1}</li>
+        ))}
+      </ol>
+      <ol className={locking ? 'tiles locking' : 'tiles'} ref={listRef}>
         {set.items.map((item, id) => {
           const position = order.indexOf(id)
           // Where the player put this item, which is what the colour reports on.
@@ -297,7 +305,6 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
                 onPointerCancel={onPointerUp}
                 onKeyDown={(e) => onKeyDown(e, id)}
               >
-                <span className="tile-rank" aria-hidden="true">{position + 1}</span>
                 <span className="tile-name">{item[0]}</span>
                 {shown ? (
                   <span className="tile-value">
@@ -324,7 +331,10 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
           )
         })}
       </ol>
-      <p className="end-label">{ruleHidden ? '?' : bottomLabel}</p>
+      </div>
+      <p className="end-label">
+        <b>{count}</b> = {ruleHidden ? '?' : lastEnd}
+      </p>
 
       <p className="sr-only" aria-live="polite">{announcement}</p>
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatCountdown, formatValue, scaleValues } from './format'
+import { endLabels, formatCountdown, formatValue, scaleValues } from './format'
 
 describe('formatValue', () => {
   it('adds the unit, keeps years bare and honours custom wording', () => {
@@ -41,5 +41,12 @@ describe('scaleValues', () => {
 
   it('gives a true zero no bar', () => {
     expect(scaleValues([0, 22, 27, 206, 400], false).fractions[0]).toBe(0)
+  })
+})
+
+describe('endLabels', () => {
+  it('names slot 1 and the last slot from the rule', () => {
+    expect(endLabels('Lightest → heaviest')).toEqual(['Lightest', 'Heaviest'])
+    expect(endLabels('Fewest in one serving → most')).toEqual(['Fewest in one serving', 'Most'])
   })
 })
