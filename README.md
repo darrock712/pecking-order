@@ -4,14 +4,16 @@
 
 <img src="docs/start.png" alt="Peckish start screen: five birds on a wire, smallest to largest, above today's three rounds and a Play button" width="420">
 
-A daily ordering puzzle. Each day everyone gets the same three rounds: five things and a rule ("lightest → heaviest", "oldest → newest"). Put them in order, lock it in, and watch the answer resolve one tile at a time. Every round ends on a fact that is meant to make you say "wait, really?".
+A daily ordering puzzle. Each day everyone gets the same three rounds: five things and a rule ("lightest → heaviest", "oldest → newest"). Put them in the numbered slots (the labels say what goes in slot 1 and slot 5), lock it in, and watch the answer resolve one tile at a time. You get two pecks per round: lock in, read the colours, fix it once.
 
 It takes about a minute a day, runs entirely in the browser, and needs no account.
 
 ## Features
 
 - **Three rounds a day**: a warm-up, a trickier one, and a twist round built around something counterintuitive.
-- **One attempt per round**, so the reveal matters. Tiles flip green (right spot), amber (one place off) or red, with the real value beside each.
+- **Mixed-bag rounds** every other day from day 5: five things counted in five different units (pieces, inches, pounds, calories, mph), ranked by the bare number.
+- **No category twice in a day**: the dealer skips ahead rather than repeat one.
+- **Two pecks per round**: a tile fixed on the second peck scores 4 instead of 6. Tiles flip green (right spot), amber (one place off) or red, with the real value beside each.
 - **The reveal shows scale**: each tile grows a bar for its value, then every tile slides to where it really belongs, so you see how wrong (or right) you were at a glance.
 - **Near misses are named**: "one swap away" rather than a bare score.
 - **Hard mode** hides the rule. You get one solved example set and have to work out what the order means before arranging your own.
@@ -70,7 +72,13 @@ Design decisions worth knowing:
 
 ## Content
 
-156 sets, enough for 52 days; after that the cycle repeats. They come from two decks: 120 classic sets and 36 "fun stats" sets (snack serving sizes, YouTube subscribers, bite force, LEGO piece counts, caffeine, sugar, spice, world records). The decks are dealt alternately, so a fun-stats day turns up every other day. `npm test` checks that every set has five unique items in rising order, values far enough apart to be a fair question (at least 8% apart, or 3 years / 5 degrees), a surprise line, a short teaser, and a same-rule partner for hard mode.
+156 sets, enough for 52 days; after that the cycle repeats. They come from two decks: 120 classic sets and 36 "fun stats" sets (snack serving sizes, YouTube subscribers, bite force, LEGO piece counts, caffeine, sugar, spice, world records). The decks are dealt alternately, so a fun-stats day turns up every other day. `npm test` checks that every set has five unique items in rising order, values far enough apart to be a fair question (at least 8% apart, or 3 years / 5 degrees), a short teaser, and a same-rule partner for hard mode.
+
+### Mixed-bag sources
+
+Twelve mixed-bag sets live in `src/data/mixed.ts`. Tests require five different units per set and at least a 20% gap between neighbours. Checked on the web in November 2026: Big Mac 580 kcal (mcdonalds.com US product page), LEGO Titanic 9,090 and LEGO Eiffel Tower 10,001 pieces (Brick Fanatics), Bohemian Rhapsody 5:55 (Radio X), Bugatti Chiron limited to 261 mph (Motor Authority), male hippo about 3,400 lb (San Diego Zoo fact sheet), General Sherman 274.9 ft (NPS figure via Wikipedia), Boeing 747-400 cruise about 567 mph, ostrich egg about 2,000 kcal, hummingbird heart up to about 1,200 beats a minute in flight, Golden Gate Bridge towers 746 ft above the water (goldengate.org).
+
+Not checked against a source (well-known or definitional values written from memory): everything else in the mixed deck, including the Great Pyramid's current height, cheetah, greyhound, Concorde and ISS speeds, giraffe height, T. rex length, blue whale weight, Titanic length, Everest and Eiffel Tower heights, and the counts (keys, bones, teeth, stitches, tiles, floors).
 
 ### Fun stats sources
 
@@ -113,6 +121,16 @@ The rest of the classic deck was written from general knowledge and reread in No
 **Vercel**: import the repository. The defaults (`npm run build`, output `dist`) work as they are.
 
 The build uses a relative base path, so it works at a domain root or under `/<repo-name>/` without changes.
+
+### Custom domain (peckish.io)
+
+Not set up yet. Once the domain is registered:
+
+1. Add `public/CNAME` containing the single line `peckish.io` and push.
+2. At the registrar, add four `A` records for `@`: `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`, and a `CNAME` record for `www` pointing at `darrock712.github.io`.
+3. In *Settings → Pages* enter `peckish.io` as the custom domain, wait for the DNS check, then tick **Enforce HTTPS**.
+
+Saves live in the browser per site address, so streaks on the old `github.io` address do not carry over to the new domain.
 
 ## Later
 
