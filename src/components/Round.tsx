@@ -231,8 +231,10 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
 
   return (
     <section className="round" aria-label={label}>
-      <p className="round-label">{label}</p>
-      <h2 className="rule">{ruleHidden ? 'Hidden rule' : set.rule}</h2>
+      <div className="round-head">
+        <p className="round-label">{label}</p>
+        <h2 className="rule">{ruleHidden ? 'Hidden rule' : set.rule}</h2>
+      </div>
 
       {hard && example && phase === 'arrange' && (
         <div className="example">

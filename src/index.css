@@ -261,6 +261,30 @@ footer { margin-top: 18px; text-align: center; }
 .perch-slot .bird { animation: land 0.5s cubic-bezier(0.2, 1.5, 0.4, 1) backwards; }
 @keyframes land { from { transform: translate(-18px, -22px) rotate(-18deg); opacity: 0; } }
 
+/* ── Round board: the wire and the rule share one teal card, like the start screen ── */
+.perch { margin-bottom: 0; padding: 12px 16px 8px; border-radius: 22px 22px 0 0; background: var(--hero); color: var(--hero-ink); }
+.perch::before { left: 16px; right: 86px; top: 42px; background: rgb(255 255 255 / 0.35); }
+.perch-slot { color: rgb(253 248 236 / 0.7); }
+.perch-slot i { background: var(--hero); border-color: rgb(255 255 255 / 0.45); }
+.perch-slot.current i { border-color: var(--hero-ink); }
+.perch-slot.current b, .perch-slot.done b { color: var(--hero-ink); }
+.perch .pips-total { color: rgb(253 248 236 / 0.7); }
+.perch .pips-total b { color: var(--pop); }
+.round-head { padding: 14px 16px 16px; margin-bottom: 14px; border-radius: 22px; background: var(--hero); color: var(--hero-ink); box-shadow: 0 6px 0 var(--hero-deep); }
+.perch + .round .round-head { padding-top: 6px; border-radius: 0 0 22px 22px; }
+.round-head .round-label { color: var(--hero-ink); opacity: 0.7; }
+.round-head .rule { margin-bottom: 0; text-wrap: balance; }
+.tile { box-shadow: 0 3px 0 var(--line); }
+.tile-rank { border-radius: 50%; background: color-mix(in srgb, var(--accent) 20%, var(--card)); }
+.tile.was-hit { box-shadow: inset 5px 0 0 var(--hit), 0 3px 0 var(--line); }
+.tile.was-near { box-shadow: inset 5px 0 0 var(--near), 0 3px 0 var(--line); }
+.tile.was-miss { box-shadow: inset 5px 0 0 var(--miss), 0 3px 0 var(--line); }
+/* The lock button is the one marigold thing on the board; locking floods it teal. */
+.lock { background: var(--pop); color: #2a1f00; box-shadow: 0 5px 0 var(--pop-deep); }
+.lock::before { background: var(--hero); }
+.lock.locking { color: var(--hero-ink); box-shadow: 0 1px 0 var(--hero-deep); }
+.lock:focus-visible { outline-color: var(--ink); }
+
 @media (max-height: 640px) { :root { --row: 54px; } .rule { font-size: 1.35rem; } }
 
 @media (prefers-reduced-motion: reduce) {
