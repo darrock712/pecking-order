@@ -221,9 +221,9 @@ export default function App() {
   return (
     <div className="app">
       <header>
-        <button type="button" className="brand" onClick={goHome} aria-label="Pecking Order — today’s puzzle">
+        <button type="button" className="brand" onClick={goHome} aria-label="Peckish — today’s puzzle">
           <Logo />
-          <span>Pecking Order</span>
+          <span>Peckish</span>
         </button>
         <nav aria-label="Options">
           {stats.streak > 0 && <span className="streak" title="Day streak">🔥 {stats.streak}</span>}

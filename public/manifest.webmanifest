@@ -1,7 +1,7 @@
 {
-  "name": "Pecking Order",
-  "short_name": "Pecking Order",
-  "description": "The daily ordering puzzle: three rounds, one surprising fact each.",
+  "name": "Peckish",
+  "short_name": "Peckish",
+  "description": "The daily ordering puzzle: five things, one right order, three rounds a day.",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",

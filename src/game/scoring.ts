@@ -78,7 +78,7 @@ const EMOJI: Record<Mark, string> = { hit: '🟩', near: '🟨', miss: '🟥' }
 
 export function shareText(day: number, record: DayRecord, teaser: string, url: string): string {
   const total = scoreDay(record.rounds)
-  const title = `Pecking Order #${day} — ${total}/${DAY_MAX}${record.hard ? ' 🔥 hard' : ''}`
+  const title = `Peckish #${day} — ${total}/${DAY_MAX}${record.hard ? ' 🔥 hard' : ''}`
   const grid = record.rounds.map((r) => r.marks.map((m) => EMOJI[m]).join('') + (r.first ? ' ↻' : '')).join('\n')
   return [title, grid, teaser, url].join('\n')
 }

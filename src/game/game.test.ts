@@ -172,7 +172,7 @@ describe('shareText', () => {
   it('shows the score and one emoji row per round without item names', () => {
     const text = shareText(7, day([SOLVED, [1, 0, 2, 3, 4], [4, 1, 2, 3, 0]]), 'A teaser', 'https://x.test')
     expect(text.split('\n')).toEqual([
-      'Pecking Order #7 — 75/100',
+      'Peckish #7 — 75/100',
       '🟩🟩🟩🟩🟩',
       '🟨🟨🟩🟩🟩',
       '🟥🟩🟩🟩🟥',

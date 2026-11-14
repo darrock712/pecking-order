@@ -1,6 +1,6 @@
 // Offline support. Pages are fetched fresh when online (so new puzzles and
 // fixes arrive straight away) and fall back to the cache when offline.
-const CACHE = 'pecking-order-v1'
+const CACHE = 'peckish-v1'
 
 self.addEventListener('install', () => self.skipWaiting())
 self.addEventListener('activate', (event) => {
