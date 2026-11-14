@@ -2,6 +2,8 @@
 
 **Play it: https://darrock712.github.io/pecking-order/**
 
+<img src="docs/start.png" alt="Pecking Order start screen: five birds on a wire, smallest to largest, above today's three rounds and a Play button" width="420">
+
 A daily ordering puzzle. Each day everyone gets the same three rounds: five things and a rule ("lightest → heaviest", "oldest → newest"). Put them in order, lock it in, and watch the answer resolve one tile at a time. Every round ends on a fact that is meant to make you say "wait, really?".
 
 It takes about a minute a day, runs entirely in the browser, and needs no account.
