@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { dateForDay, dayNumber, exampleFor, msUntilNextDay, setsForDay, shuffledOrder } from './daily'
-import { DAY_MAX, ROUND_MAX, markOrder, scoreDay, scoreRound, shareText, swapsAway, verdict } from './scoring'
+import { DAY_MAX, ROUND_MAX, isPerfectRound, markOrder, scoreDay, scoreRound, shareText, swapsAway, verdict } from './scoring'
+import { rankFor } from './ranks'
 import { computeStats } from './stats'
 import type { DayRecord, Difficulty, PuzzleSet } from './types'
 
@@ -22,7 +23,7 @@ const POOL = [
 
 const SOLVED = [0, 1, 2, 3, 4]
 const day = (rounds: number[][], live = true, hard = false): DayRecord => ({
-  rounds: rounds.map(scoreRound),
+  rounds: rounds.map((r) => scoreRound(r)),
   live,
   hard,
 })
@@ -108,8 +109,8 @@ describe('scoring', () => {
   })
 
   it('totals exactly 100 for a perfect day', () => {
-    expect(scoreDay([SOLVED, SOLVED, SOLVED].map(scoreRound))).toBe(DAY_MAX)
-    expect(scoreDay([SOLVED, SOLVED].map(scoreRound))).toBe(66)
+    expect(scoreDay([SOLVED, SOLVED, SOLVED].map((r) => scoreRound(r)))).toBe(DAY_MAX)
+    expect(scoreDay([SOLVED, SOLVED].map((r) => scoreRound(r)))).toBe(66)
   })
 
   it('counts the fewest swaps needed', () => {
@@ -124,6 +125,46 @@ describe('scoring', () => {
     expect(verdict([0, 1, 2, 4, 3])).toMatch(/one swap away/)
     expect(verdict([1, 2, 0, 3, 4])).toBe('2 of 5 in the right spot')
     expect(verdict([1, 2, 3, 4, 0])).toMatch(/Scrambled/)
+  })
+})
+
+describe('second peck', () => {
+  const first = [1, 0, 2, 4, 3]
+
+  it('scores a kept answer exactly like a single try', () => {
+    expect(scoreRound(first, first)).toEqual(scoreRound(first))
+  })
+
+  it('pays 4 for a fixed tile, 6 for one that was already right, and no perfect bonus', () => {
+    const fixed = scoreRound(SOLVED, first)
+    expect(fixed.score).toBe(6 + 4 * 4)
+    expect(fixed.first).toEqual(first)
+    expect(isPerfectRound(fixed)).toBe(false)
+    expect(verdict(fixed.order, true)).toMatch(/second peck/)
+  })
+
+  it('never beats getting it right the first time', () => {
+    expect(scoreRound(SOLVED, [4, 3, 2, 1, 0]).score).toBeLessThan(ROUND_MAX)
+  })
+
+  it('marks a pecked round in the share grid', () => {
+    const record: DayRecord = { rounds: [scoreRound(SOLVED, first), scoreRound(SOLVED), scoreRound(SOLVED)], live: true, hard: false }
+    expect(shareText(1, record, 't', 'u').split('\n')[1]).toBe('🟩🟩🟩🟩🟩 ↻')
+    expect(scoreDay(record.rounds)).toBe(22 + 33 + 33)
+  })
+})
+
+describe('rankFor', () => {
+  it('starts as an egg and climbs with points', () => {
+    expect(rankFor(0)).toMatchObject({ level: 0, progress: 0 })
+    expect(rankFor(100).level).toBe(1)
+    expect(rankFor(200)).toMatchObject({ level: 1, progress: 0.5 })
+  })
+
+  it('tops out with no next rank', () => {
+    const top = rankFor(1e6)
+    expect(top.next).toBeUndefined()
+    expect(top.progress).toBe(1)
   })
 })
 
@@ -151,7 +192,7 @@ describe('computeStats', () => {
 
   it('is all zeros for a new player', () => {
     expect(computeStats({}, 5)).toEqual({
-      played: 0, average: 0, perfectRounds: 0, perfectDays: 0, streak: 0, bestStreak: 0,
+      played: 0, points: 0, average: 0, perfectRounds: 0, perfectDays: 0, streak: 0, bestStreak: 0,
     })
   })
 

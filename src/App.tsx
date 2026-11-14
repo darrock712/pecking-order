@@ -83,7 +83,15 @@ export default function App() {
     setSave((s) => {
       const existing = s.days[day]
       const record = existing ?? { rounds: [], hard: s.hard, live: day === today }
-      return { ...s, days: { ...s.days, [day]: { ...record, rounds: [...record.rounds, result] } } }
+      return { ...s, days: { ...s.days, [day]: { ...record, pending: undefined, rounds: [...record.rounds, result] } } }
+    })
+  }
+
+  // Remember a first peck straight away, so reloading can't buy a fresh first try.
+  const peckRound = (day: number, order: number[]) => {
+    setSave((s) => {
+      const record = s.days[day] ?? { rounds: [], hard: s.hard, live: day === today }
+      return { ...s, days: { ...s.days, [day]: { ...record, pending: order } } }
     })
   }
 
@@ -194,6 +202,8 @@ export default function App() {
           showHint={isNewPlayer && roundIndex === 0}
           muted={save.muted}
           nextLabel={roundIndex === 2 ? 'See my score' : 'Next round'}
+          firstPeck={record?.pending}
+          onPeck={(order) => peckRound(day, order)}
           onLock={(result) => lockRound(day, result)}
           onNext={() => {
             setJustFinished(roundIndex === 2)
@@ -205,7 +215,8 @@ export default function App() {
     }
   }
 
-  const dayInProgress = view.kind === 'day' && (save.days[view.day]?.rounds.length ?? 0) % 3 !== 0
+  const viewed = view.kind === 'day' ? save.days[view.day] : undefined
+  const dayInProgress = !!viewed && (viewed.rounds.length % 3 !== 0 || !!viewed.pending)
 
   return (
     <div className="app">
@@ -253,8 +264,10 @@ export default function App() {
             <h2 id="help-title">How to play</h2>
             <ul>
               <li>Three rounds a day. Put five things in order, then lock it in.</li>
-              <li>🟩 right spot · 🟨 one place off · 🟥 further away.</li>
-              <li>One try per round — the reveal is the fun part.</li>
+              <li>🟩 right spot · 🟨 one place off · 🟥 two or more off.</li>
+              <li>Two pecks per round. Lock in, read the colours, then fix it once — or keep it.</li>
+              <li>Right first time scores 6 a tile. A tile you fix on the second peck scores 4.</li>
+              <li>Every point counts towards your rank, from Egg to Top Bird.</li>
               <li>Your streak counts days played. A low score never breaks it.</li>
               <li><strong>Hard mode</strong> hides the rule. You only get a solved example to work out what the order means.</li>
             </ul>

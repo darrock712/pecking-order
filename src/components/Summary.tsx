@@ -7,6 +7,7 @@ import { playFanfare } from '../lib/feedback'
 import { formatCountdown } from '../lib/format'
 import { Bird } from './Bird'
 import { Confetti, CountUp } from './Effects'
+import { RankCard } from './RankCard'
 
 interface Props {
   day: number
@@ -99,11 +100,14 @@ export function Summary({ day, record, sets, stats, fresh, muted, onPractice, on
         </div>
       </div>
 
+      {record.live && <RankCard points={stats.points} gained={total} celebrate={fresh} />}
+
       <ul className="recap">
         {record.rounds.map((round, i) => (
           <li key={i}>
             <span className="grid-row" aria-label={`Round ${i + 1}: ${round.marks.filter((m) => m === 'hit').length} of 5 in place`}>
               {round.marks.map((m) => EMOJI[m]).join('')}
+              {round.first && <small> second peck</small>}
             </span>
             <span className="recap-fact">{sets[i].surprise}</span>
           </li>

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { shuffledOrder } from '../game/daily'
-import { ROUND_MAX, isPerfectRound, scoreRound, verdict } from '../game/scoring'
-import type { PuzzleSet, RoundResult } from '../game/types'
+import { POINTS, ROUND_MAX, isPerfectRound, markOrder, scoreRound, verdict } from '../game/scoring'
+import type { Mark, PuzzleSet, RoundResult } from '../game/types'
 import { playFanfare, playLock, playMark, playTick, prefersReducedMotion } from '../lib/feedback'
 import { formatValue, isCountable, scaleValues } from '../lib/format'
 import { Confetti, CountUp } from './Effects'
@@ -16,6 +16,10 @@ interface Props {
   showHint: boolean
   muted: boolean
   nextLabel: string
+  /** A first peck already made on this round (restored after a reload). */
+  firstPeck?: number[]
+  /** The first lock that wasn't perfect: colours show and one more go is allowed. */
+  onPeck?: (order: number[]) => void
   onLock: (result: RoundResult) => void
   onNext: () => void
 }
@@ -30,15 +34,26 @@ const SETTLE_MS = 1100
 const LOCK_MS = 480
 const INTERVAL_KEYS = ['year', 'temp']
 
+/** What the first peck said about a tile, in words short enough to sit on it. */
+const WAS: Record<Mark, (spot: number) => string> = {
+  hit: (spot) => `✓ spot ${spot}`,
+  near: (spot) => `1 off spot ${spot}`,
+  miss: (spot) => `2+ off spot ${spot}`,
+}
+
 const move = (order: number[], from: number, to: number) => {
   const next = [...order]
   next.splice(to, 0, ...next.splice(from, 1))
   return next
 }
 
-export function Round({ set, example, hard, seed, label, showHint, muted, nextLabel, onLock, onNext }: Props) {
+export function Round({ set, example, hard, seed, label, showHint, muted, nextLabel, firstPeck, onPeck, onLock, onNext }: Props) {
   const count = set.items.length
-  const [order, setOrder] = useState(() => shuffledOrder(count, seed))
+  const [order, setOrder] = useState(() => firstPeck ?? shuffledOrder(count, seed))
+  // The first peck, once made: its colours stay on the tiles while the player has one more go.
+  const [first, setFirst] = useState<number[] | null>(firstPeck ?? null)
+  const firstMarks = useMemo(() => first && markOrder(first), [first])
+  const unchanged = !!first && first.every((item, position) => item === order[position])
   const [selected, setSelected] = useState<number | null>(null)
   const [phase, setPhase] = useState<Phase>('arrange')
   // The player's answer, frozen at lock-in. `order` keeps driving the layout so
@@ -60,7 +75,7 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
     () => scaleValues(set.items.map(([, value]) => value), INTERVAL_KEYS.includes(set.key)),
     [set],
   )
-  const [first, last] = set.rule.split(' → ')
+  const [topLabel, bottomLabel] = set.rule.split(' → ')
   const ruleHidden = hard && phase === 'arrange'
   const name = (item: number) => set.items[item][0]
 
@@ -186,9 +201,21 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
   }
 
   const commit = () => {
-    const result = scoreRound(order)
     setSelected(null)
     setLocking(false)
+    if (!first && order.some((item, position) => item !== position)) {
+      // First peck, not perfect: show the colours and allow one more go.
+      const marks = markOrder(order)
+      const tally = (m: Mark) => marks.filter((x) => x === m).length
+      setFirst([...order])
+      onPeck?.([...order])
+      marks.forEach((m, i) => window.setTimeout(() => playMark(m, muted), i * 90))
+      setAnnouncement(
+        `${tally('hit')} in the right spot, ${tally('near')} one place off, ${tally('miss')} further away. One more peck.`,
+      )
+      return
+    }
+    const result = scoreRound(order, first ?? undefined)
     setLocked(result)
     onLock(result)
     if (prefersReducedMotion()) {
@@ -218,11 +245,17 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
         </div>
       )}
 
-      {showHint && phase === 'arrange' && (
+      {showHint && !first && phase === 'arrange' && (
         <p className="hint">Drag to reorder, or tap two to swap. Then lock it in.</p>
       )}
 
-      <p className="end-label">{ruleHidden ? '?' : first}</p>
+      {first && phase === 'arrange' && (
+        <p className="peck-note">
+          <b>One more peck.</b> Fix what you can: a fixed tile scores {POINTS.fixed}, not {POINTS.hit}.
+        </p>
+      )}
+
+      <p className="end-label">{ruleHidden ? '?' : topLabel}</p>
       <ol className={locking ? 'tiles locking' : 'tiles'} ref={listRef} style={{ ['--count' as string]: count }}>
         {set.items.map((item, id) => {
           const position = order.indexOf(id)
@@ -231,6 +264,9 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
           const shown = !!locked && guessed < revealed
           const mark = shown ? locked.marks[guessed] : undefined
           const dragging = drag?.item === id
+          // During the second peck each tile carries what the first peck said about it.
+          const was = first && firstMarks && phase === 'arrange' ? first.indexOf(id) : -1
+          const wasMark = was >= 0 && firstMarks ? firstMarks[was] : undefined
           return (
             <li
               key={id}
@@ -243,13 +279,13 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
             >
               <button
                 type="button"
-                className={['tile', mark, selected === id && 'selected', showHint && position === 0 && phase === 'arrange' && 'nudge']
+                className={['tile', mark, wasMark && `was-${wasMark}`, selected === id && 'selected', showHint && position === 0 && phase === 'arrange' && 'nudge']
                   .filter(Boolean)
                   .join(' ')}
                 disabled={phase !== 'arrange'}
                 aria-label={
                   phase === 'arrange'
-                    ? `${item[0]}, position ${position + 1} of ${count}. Arrow keys move it.`
+                    ? `${item[0]}, position ${position + 1} of ${count}.${wasMark ? ` First peck: ${WAS[wasMark](was + 1)}.` : ''} Arrow keys move it.`
                     : `${item[0]}, ${formatValue(item, set.unit)}`
                 }
                 aria-pressed={phase === 'arrange' ? selected === id : undefined}
@@ -273,7 +309,12 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
                     {mark !== 'hit' && !settled && <small>belongs at {id + 1}</small>}
                   </span>
                 ) : (
-                  phase === 'arrange' && <span className="grip" aria-hidden="true">⋮⋮</span>
+                  phase === 'arrange' &&
+                  (wasMark ? (
+                    <span className="was" aria-hidden="true">{WAS[wasMark](was + 1)}</span>
+                  ) : (
+                    <span className="grip" aria-hidden="true">⋮⋮</span>
+                  ))
                 )}
                 {shown && <span className="bar" aria-hidden="true" style={{ width: `${scale.fractions[id] * 100}%` }} />}
               </button>
@@ -281,20 +322,22 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
           )
         })}
       </ol>
-      <p className="end-label">{ruleHidden ? '?' : last}</p>
+      <p className="end-label">{ruleHidden ? '?' : bottomLabel}</p>
 
       <p className="sr-only" aria-live="polite">{announcement}</p>
 
       {phase === 'arrange' && (
         <button type="button" className={locking ? 'primary lock locking' : 'primary lock'} aria-disabled={locking} onClick={lock}>
-          <span key={locking ? 'locked' : 'idle'}>{locking ? 'Locked in ✓' : 'Lock it in'}</span>
+          <span key={locking ? 'locked' : 'idle'}>
+            {locking ? 'Locked in ✓' : !first ? 'Lock it in' : unchanged ? 'Keep it as it is' : 'Final answer'}
+          </span>
         </button>
       )}
 
       {phase === 'done' && locked && (
         <div className="result" aria-live="polite">
           {perfect && <Confetti />}
-          <p className={`verdict ${perfect ? 'perfect' : ''}`}>{verdict(locked.order)}</p>
+          <p className={`verdict ${perfect ? 'perfect' : ''}`}>{verdict(locked.order, !!locked.first)}</p>
           <p className="points">
             +<CountUp value={locked.score} places={0} /> <span>of {ROUND_MAX}</span>
           </p>

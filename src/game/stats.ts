@@ -3,6 +3,8 @@ import type { DayRecord, Save } from './types'
 
 export interface Stats {
   played: number
+  /** Every point from live days; drives the rank. */
+  points: number
   average: number
   perfectRounds: number
   perfectDays: number
@@ -36,6 +38,7 @@ export function computeStats(days: Save['days'], today: number): Stats {
   const scores = live.map(([, r]) => scoreDay(r.rounds))
   return {
     played: live.length,
+    points: scores.reduce((a, b) => a + b, 0),
     average: scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0,
     perfectRounds: live.reduce((n, [, r]) => n + r.rounds.filter(isPerfectRound).length, 0),
     perfectDays: live.filter(([, r]) => r.rounds.every(isPerfectRound)).length,

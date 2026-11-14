@@ -27,6 +27,8 @@ export interface RoundResult {
   order: number[]
   marks: Mark[]
   score: number
+  /** The first-peck order, kept only when the player changed it on the second peck. */
+  first?: number[]
 }
 
 export interface DayRecord {
@@ -34,6 +36,8 @@ export interface DayRecord {
   hard: boolean
   /** True when played on its own calendar day (counts for streak and stats). */
   live: boolean
+  /** First-peck order of the round in play, so a reload can't buy a fresh first try. */
+  pending?: number[]
 }
 
 export interface Save {

@@ -4,6 +4,7 @@ import { DAY_MAX, scoreDay } from '../game/scoring'
 import type { Stats } from '../game/stats'
 import type { DayRecord, PuzzleSet } from '../game/types'
 import { Bird } from './Bird'
+import { RankCard } from './RankCard'
 
 interface HomeProps {
   day: number
@@ -43,7 +44,7 @@ export function Home({ day, sets, record, hard, stats, onPlay, onArchive, onPrac
         <h1>
           Who’s <em>really</em> on top?
         </h1>
-        <p className="hero-sub">Five things. One right order. Three rounds a day.</p>
+        <p className="hero-sub">Five things. One right order. Two pecks to get it.</p>
 
         <ol className="menu">
           {sets.map((set, i) => {
@@ -67,6 +68,8 @@ export function Home({ day, sets, record, hard, stats, onPlay, onArchive, onPrac
           </p>
         )}
       </div>
+
+      {stats.played > 0 && <RankCard points={stats.points} />}
 
       {stats.played > 0 && (
         <dl className="stats">
