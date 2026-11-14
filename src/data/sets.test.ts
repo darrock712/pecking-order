@@ -19,7 +19,6 @@ describe('puzzle content', () => {
   it.each(SETS.map((set, i) => [label(i), set] as const))('%s is well formed', (_, set) => {
     expect(set.items).toHaveLength(5)
     expect(new Set(set.items.map(([name]) => name)).size).toBe(5)
-    expect(set.surprise.trim()).not.toBe('')
     expect(set.teaser.trim()).not.toBe('')
     expect(set.teaser.length).toBeLessThanOrEqual(70)
 

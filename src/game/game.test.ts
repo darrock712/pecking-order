@@ -11,7 +11,6 @@ const fake = (name: string, difficulty: Difficulty, key = 'weight'): PuzzleSet =
   unit: 'kg',
   difficulty,
   items: [['a', 1], ['b', 2], ['c', 3], ['d', 4], ['e', 5]],
-  surprise: name,
   teaser: name,
 })
 
@@ -64,7 +63,7 @@ describe('setsForDay', () => {
   })
 
   it('changes day to day and loops when content runs out', () => {
-    expect(setsForDay(2, POOL)[0].surprise).toBe('e2')
+    expect(setsForDay(2, POOL)[0].teaser).toBe('e2')
     expect(setsForDay(3, POOL)).toEqual(setsForDay(1, POOL))
   })
 })

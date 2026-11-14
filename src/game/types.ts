@@ -13,8 +13,6 @@ export interface PuzzleSet {
   difficulty: Difficulty
   /** Listed in the correct order. */
   items: readonly Item[]
-  /** The "wait, really?" line shown after the reveal. */
-  surprise: string
   /** Spoiler-free hook used in the share text. */
   teaser: string
 }

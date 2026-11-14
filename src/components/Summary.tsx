@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { categoryFor } from '../data/icons'
 import { msUntilNextDay } from '../game/daily'
 import { DAY_MAX, isPerfectRound, roundTone, scoreDay, shareText } from '../game/scoring'
 import type { Stats } from '../game/stats'
@@ -27,7 +28,7 @@ function headline(total: number, perfectDay: boolean) {
   if (perfectDay) return 'Perfect day!'
   if (total >= 80) return 'Top of the pecking order'
   if (total >= 55) return 'Nicely ranked'
-  return 'Three new facts in your pocket'
+  return 'Every bird starts somewhere'
 }
 
 export function Summary({ day, record, sets, stats, fresh, muted, onPractice, onArchive }: Props) {
@@ -109,7 +110,7 @@ export function Summary({ day, record, sets, stats, fresh, muted, onPractice, on
               {round.marks.map((m) => EMOJI[m]).join('')}
               {round.first && <small> second peck</small>}
             </span>
-            <span className="recap-fact">{sets[i].surprise}</span>
+            <span className="recap-name">{categoryFor(sets[i].key)[1]} · {round.score} pts</span>
           </li>
         ))}
       </ul>

@@ -354,7 +354,6 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
             +<CountUp value={locked.score} places={0} /> <span>of {ROUND_MAX}</span>
           </p>
           {hard && <p className="rule-reveal">The rule was: {set.rule}</p>}
-          <p className="surprise">{set.surprise}</p>
           {scale.log && <p className="scale-note">Bars use a log scale. The real gaps are even bigger.</p>}
           <button type="button" className="primary" ref={nextRef} onClick={onNext}>
             {nextLabel}

@@ -177,7 +177,6 @@ footer { margin-top: 18px; text-align: center; }
 .points { font-size: 1.05rem; font-weight: 700; margin-top: 2px; }
 .points span { color: var(--muted); font-weight: 600; }
 .rule-reveal { margin-top: 8px; font-weight: 700; }
-.surprise { margin-top: 12px; padding: 14px 16px; background: var(--card); border: 1.5px solid var(--line); border-left: 5px solid var(--pop); border-radius: 12px; text-align: left; font-size: 1.02rem; line-height: 1.4; font-weight: 550; }
 @keyframes rise { from { opacity: 0; transform: translateY(8px); } }
 
 .summary { position: relative; text-align: center; }
@@ -185,9 +184,9 @@ footer { margin-top: 18px; text-align: center; }
 .total { font-family: var(--display); font-size: 4.4rem; font-weight: 800; color: var(--pop); line-height: 1; margin: 8px 0 14px; font-variant-numeric: tabular-nums; }
 .total span { font-size: 1.4rem; color: var(--hero-ink); opacity: 0.7; font-weight: 700; }
 .recap { display: grid; gap: 8px; text-align: left; }
-.recap li { background: var(--card); border: 1.5px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+.recap li { background: var(--card); border: 1.5px solid var(--line); border-radius: 12px; padding: 10px 12px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 10px; }
 .grid-row { display: block; letter-spacing: 0.1em; }
-.recap-fact { display: block; margin-top: 4px; font-size: 0.9rem; line-height: 1.35; color: var(--muted); }
+.recap-name { color: var(--muted); font-size: 0.85rem; font-weight: 600; }
 .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 16px; }
 .stats div { background: var(--card); border: 1.5px solid var(--line); border-radius: 12px; padding: 8px 4px; display: flex; flex-direction: column-reverse; }
 .stats dt { font-size: 0.7rem; color: var(--muted); font-weight: 600; }
