@@ -10,6 +10,8 @@ export interface PuzzleSet {
   /** Shown to the player, e.g. "Lightest → heaviest". */
   rule: string
   unit: string
+  /** Mixed-bag rounds only: one unit per item, used instead of `unit`. */
+  units?: readonly string[]
   difficulty: Difficulty
   /** Listed in the correct order. */
   items: readonly Item[]

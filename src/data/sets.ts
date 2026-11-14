@@ -1,4 +1,6 @@
+import { setsForDay } from '../game/daily'
 import type { Difficulty, Item, PuzzleSet } from '../game/types'
+import { MIXED } from './mixed'
 
 /**
  * Puzzle content. Every set lists its five items in the CORRECT order, with
@@ -392,3 +394,9 @@ function interleave(first: readonly PuzzleSet[], second: readonly PuzzleSet[]): 
 }
 
 export const SETS: PuzzleSet[] = interleave(CLASSIC, FUN)
+
+/** Every set a practice round can draw from. */
+export const ALL_SETS: readonly PuzzleSet[] = [...SETS, ...MIXED]
+
+/** The three rounds everyone gets on a given day. */
+export const dealDay = (day: number): PuzzleSet[] => setsForDay(day, SETS, MIXED)

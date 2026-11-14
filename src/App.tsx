@@ -3,8 +3,8 @@ import { Bird } from './components/Bird'
 import { Home } from './components/Home'
 import { Round } from './components/Round'
 import { Summary } from './components/Summary'
-import { SETS } from './data/sets'
-import { dateForDay, dayNumber, exampleFor, setsForDay } from './game/daily'
+import { ALL_SETS, SETS, dealDay } from './data/sets'
+import { dateForDay, dayNumber, exampleFor } from './game/daily'
 import { DAY_MAX, roundTone, scoreDay } from './game/scoring'
 import { computeStats } from './game/stats'
 import { loadSave, storeSave } from './game/storage'
@@ -26,10 +26,19 @@ function Logo() {
   )
 }
 
+/** Development only: `?day=12` opens that day as if it were today. Compiled out of the real build. */
+function currentDay(): number {
+  if (import.meta.env.DEV) {
+    const forced = Number(new URLSearchParams(location.search).get('day'))
+    if (Number.isInteger(forced) && forced > 0) return forced
+  }
+  return dayNumber(new Date())
+}
+
 function useToday() {
-  const [today, setToday] = useState(() => dayNumber(new Date()))
+  const [today, setToday] = useState(currentDay)
   useEffect(() => {
-    const check = () => setToday(dayNumber(new Date()))
+    const check = () => setToday(currentDay())
     const timer = window.setInterval(check, 30_000)
     document.addEventListener('visibilitychange', check)
     return () => {
@@ -73,8 +82,8 @@ export default function App() {
   const isNewPlayer = Object.keys(save.days).length === 0
 
   const startPractice = () => {
-    const todays = setsForDay(today, SETS)
-    const pool = SETS.filter((s) => !todays.includes(s))
+    const todays = dealDay(today)
+    const pool = ALL_SETS.filter((s) => !todays.includes(s))
     const seed = Math.floor(Math.random() * 1e9)
     setView({ kind: 'practice', set: pool[seed % pool.length], seed })
   }
@@ -103,7 +112,7 @@ export default function App() {
     content = (
       <Home
         day={today}
-        sets={setsForDay(today, SETS)}
+        sets={dealDay(today)}
         record={record}
         hard={record?.hard ?? save.hard}
         stats={stats}
@@ -156,7 +165,7 @@ export default function App() {
     )
   } else {
     const { day } = view
-    const sets = setsForDay(day, SETS)
+    const sets = dealDay(day)
     const record = save.days[day]
     const hard = record?.hard ?? save.hard
     if (record && roundIndex >= 3) {
@@ -198,7 +207,7 @@ export default function App() {
           example={hard ? exampleFor(set, SETS, sets) : undefined}
           hard={hard}
           seed={day * 10 + roundIndex}
-          label={`#${day} · ${ROUND_NAMES[roundIndex]}`}
+          label={`#${day} · ${set.units ? `Round ${roundIndex + 1} · mixed bag` : ROUND_NAMES[roundIndex]}`}
           showHint={isNewPlayer && roundIndex === 0}
           muted={save.muted}
           nextLabel={roundIndex === 2 ? 'See my score' : 'Next round'}

@@ -3,7 +3,7 @@ import { shuffledOrder } from '../game/daily'
 import { POINTS, ROUND_MAX, isPerfectRound, markOrder, scoreRound, verdict } from '../game/scoring'
 import type { Mark, PuzzleSet, RoundResult } from '../game/types'
 import { playFanfare, playLock, playMark, playTick, prefersReducedMotion } from '../lib/feedback'
-import { endLabels, formatValue, isCountable, scaleValues } from '../lib/format'
+import { endLabels, formatValue, isCountable, scaleValues, unitOf } from '../lib/format'
 import { Confetti, CountUp } from './Effects'
 
 interface Props {
@@ -76,7 +76,9 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
     [set],
   )
   const [firstEnd, lastEnd] = endLabels(set.rule)
-  const ruleHidden = hard && phase === 'arrange'
+  // A mixed-bag round has no rule to guess: the units on the tiles are the puzzle.
+  const mixed = set.units !== undefined
+  const ruleHidden = hard && !mixed && phase === 'arrange'
   const name = (item: number) => set.items[item][0]
 
   // The reveal: tiles resolve one at a time from the top, with a held beat before the last.
@@ -247,7 +249,11 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
         </div>
       )}
 
-      {showHint && !first && phase === 'arrange' && (
+      {mixed && !first && phase === 'arrange' && (
+        <p className="hint">Every tile counts something different. Ignore the units and rank the bare numbers.</p>
+      )}
+
+      {showHint && !mixed && !first && phase === 'arrange' && (
         <p className="hint">Drag to reorder, or tap two to swap. Then lock it in.</p>
       )}
 
@@ -260,7 +266,7 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
       <p className="end-label">
         <b>1</b> = {ruleHidden ? '?' : firstEnd}
       </p>
-      <div className="board" style={{ ['--count' as string]: count }}>
+      <div className={mixed ? 'board mixed' : 'board'} style={{ ['--count' as string]: count }}>
       <ol className="slots" aria-hidden="true">
         {set.items.map((_, slot) => (
           <li key={slot} className={slot === 0 || slot === count - 1 ? 'end' : undefined}>{slot + 1}</li>
@@ -274,6 +280,7 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
           const shown = !!locked && guessed < revealed
           const mark = shown ? locked.marks[guessed] : undefined
           const dragging = drag?.item === id
+          const unit = unitOf(set, id)
           // During the second peck each tile carries what the first peck said about it.
           const was = first && firstMarks && phase === 'arrange' ? first.indexOf(id) : -1
           const wasMark = was >= 0 && firstMarks ? firstMarks[was] : undefined
@@ -295,8 +302,8 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
                 disabled={phase !== 'arrange'}
                 aria-label={
                   phase === 'arrange'
-                    ? `${item[0]}, position ${position + 1} of ${count}.${wasMark ? ` First peck: ${WAS[wasMark](was + 1)}.` : ''} Arrow keys move it.`
-                    : `${item[0]}, ${formatValue(item, set.unit)}`
+                    ? `${item[0]}${mixed ? ` (${unit})` : ''}, position ${position + 1} of ${count}.${wasMark ? ` First peck: ${WAS[wasMark](was + 1)}.` : ''} Arrow keys move it.`
+                    : `${item[0]}, ${formatValue(item, unit)}`
                 }
                 aria-pressed={phase === 'arrange' ? selected === id : undefined}
                 onPointerDown={(e) => onPointerDown(e, id)}
@@ -305,15 +312,18 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
                 onPointerCancel={onPointerUp}
                 onKeyDown={(e) => onKeyDown(e, id)}
               >
-                <span className="tile-name">{item[0]}</span>
+                <span className="tile-name">
+                  {item[0]}
+                  {mixed && !shown && <small className="tile-unit">{unit}</small>}
+                </span>
                 {shown ? (
                   <span className="tile-value">
-                    {isCountable(item, set.unit) ? (
+                    {isCountable(item, unit) ? (
                       <>
-                        <CountUp value={item[1]} /> {set.unit}
+                        <CountUp value={item[1]} /> {unit}
                       </>
                     ) : (
-                      formatValue(item, set.unit)
+                      formatValue(item, unit)
                     )}
                     {mark !== 'hit' && !settled && <small>belongs at {id + 1}</small>}
                   </span>

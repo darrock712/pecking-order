@@ -1,4 +1,4 @@
-import type { Item } from '../game/types'
+import type { Item, PuzzleSet } from '../game/types'
 
 const decimals = (n: number) => (String(n).split('.')[1] ?? '').length
 
@@ -8,6 +8,9 @@ export function formatNumber(value: number, places = decimals(value)): string {
 
 /** True when the value can be animated as a plain number (no custom wording, not a year). */
 export const isCountable = ([, , display]: Item, unit: string) => display === undefined && unit !== 'year'
+
+/** The unit an item is counted in: its own in a mixed-bag round, the set's otherwise. */
+export const unitOf = (set: PuzzleSet, index: number) => set.units?.[index] ?? set.unit
 
 export function formatValue([, value, display]: Item, unit: string): string {
   if (display !== undefined) return display

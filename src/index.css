@@ -95,6 +95,8 @@ nav { display: flex; align-items: center; gap: 5px; flex: none; }
 .dragging .tile { box-shadow: 0 10px 24px rgb(0 0 0 / 0.18); border-color: var(--accent); }
 .tile.selected { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
 .tile-name { flex: 1; font-weight: 650; line-height: 1.15; font-size: 0.98rem; }
+.tile-unit { display: block; margin-top: 2px; color: var(--accent); font-size: 0.78rem; font-weight: 700; }
+.board.mixed { --row: 70px; }
 .grip { color: var(--line); font-size: 1.1rem; letter-spacing: -0.2em; padding-right: 4px; }
 .tile-value { text-align: right; font-weight: 700; font-size: 0.85rem; line-height: 1.2; font-variant-numeric: tabular-nums; max-width: 46%; }
 .tile-value small { display: block; font-weight: 600; font-size: 0.7rem; opacity: 0.75; }
@@ -284,7 +286,7 @@ footer { margin-top: 18px; text-align: center; }
 .lock.locking { color: var(--hero-ink); box-shadow: 0 1px 0 var(--hero-deep); }
 .lock:focus-visible { outline-color: var(--ink); }
 
-@media (max-height: 640px) { :root { --row: 54px; } .rule { font-size: 1.35rem; } }
+@media (max-height: 640px) { :root { --row: 54px; } .board.mixed { --row: 62px; } .rule { font-size: 1.35rem; } }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }

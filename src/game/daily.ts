@@ -26,11 +26,29 @@ export function msUntilNextDay(now: Date): number {
   return next.getTime() - now.getTime()
 }
 
-/** The three rounds for a day: one easy, one medium, one twist. Loops when content runs out. */
-export function setsForDay(day: number, all: readonly PuzzleSet[]): PuzzleSet[] {
+/**
+ * Mixed-bag rounds arrive on day 5 and then every other day. Starting late
+ * keeps day 1 simple and leaves the days already played as they were.
+ */
+export const MIXED_FROM = 5
+export const isMixedDay = (day: number) => day >= MIXED_FROM && (day - MIXED_FROM) % 2 === 0
+/** How many mixed days fall before `day`. */
+const mixedDaysBefore = (day: number) => (day <= MIXED_FROM ? 0 : Math.ceil((day - MIXED_FROM) / 2))
+
+const pick = <T,>(pool: readonly T[], index: number): T => pool[((index % pool.length) + pool.length) % pool.length]
+
+/**
+ * The three rounds for a day: one easy, one medium, one twist. On a mixed day
+ * a mixed-bag round takes the middle slot, and the medium set it displaced
+ * waits for the next ordinary day, so nothing is skipped. Loops when content
+ * runs out.
+ */
+export function setsForDay(day: number, all: readonly PuzzleSet[], mixed: readonly PuzzleSet[] = []): PuzzleSet[] {
+  const mixedBefore = mixed.length > 0 ? mixedDaysBefore(day) : 0
   return ORDER.map((difficulty) => {
-    const pool = all.filter((s) => s.difficulty === difficulty)
-    return pool[(((day - 1) % pool.length) + pool.length) % pool.length]
+    if (difficulty !== 'medium') return pick(all.filter((s) => s.difficulty === difficulty), day - 1)
+    if (mixed.length > 0 && isMixedDay(day)) return pick(mixed, mixedBefore)
+    return pick(all.filter((s) => s.difficulty === 'medium'), day - 1 - mixedBefore)
   })
 }
 
