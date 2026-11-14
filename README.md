@@ -82,17 +82,24 @@ The fun-stats deck was checked against sources in November 2026. Soft numbers ar
 - LEGO piece counts: Brick Fanatics "biggest LEGO sets" list.
 - Caffeine: CSPI caffeine chart. Scoville: Guinness for Pepper X and Carolina Reaper, typical mid-range values for the rest.
 - World records, rechecked November 2026 because they keep falling: marathon 1:59:30 (Sabastian Sawe, London 2026, ratified by World Athletics), Rubik's Cube single 2.51 s (Xuanyi Geng, October 2026, from news reports of the WCA result), heaviest pumpkin 1,431.5 kg (Ron Wallace, October 2026, Guinness). Reese's Pieces serving of 51 pieces is from Hershey's SmartLabel.
-- Not checked against a source (written from memory): candy serving count for Hershey's Kisses, fruit sugar, McDonald's calories, trophy weights, sport speed records, part counts for a piano, car and 747.
+- Fastest baseball pitch: 105.8 mph (170.3 km/h), Aroldis Chapman, 2010, the Guinness figure. Some lists give the first radar reading of 105.1 mph.
+- Not checked against a source (written from memory): candy serving count for Hershey's Kisses, fruit sugar, McDonald's calories (a search did not turn up McDonald's own per-item figures), trophy weights, the other sport speed records, part counts for a piano, car and 747.
 
-The classic deck's figures were written from general knowledge and have not been checked against sources. Most are textbook values. These are the ones to verify before sharing widely, because sources vary or the number is an estimate:
+Three classic-deck sets were checked against sources in November 2026:
+
+- Blue whale heart rate: 4 to 8 beats a minute on a dive and as low as 2, but 25 to 37 at the surface (Goldbogen et al., PNAS 2019). The item now says "on a dive".
+- Kiwi and emu eggs: brown kiwi about 440 g, emu 500 to 700 g, so the order holds.
+- The height set used to include an ostrich at 2.5 m. Big males reach about 2.8 m, taller than the tallest man (2.72 m), so it was swapped for a standard door (2.03 m).
+
+The rest of the classic deck was written from general knowledge and reread in November 2026 without finding an order that looks wrong, but it has not been checked against sources. Most are textbook values. These are the ones to verify before sharing widely, because sources vary or the number is an estimate:
 
 - Weight of a cumulus cloud (~500 tonnes) and of the Eiffel Tower (10,100 tonnes including non-metal parts)
 - Animal top speeds: black mamba, grizzly bear, house cat, mallard, dragonfly, swift, hippo
 - Mantis shrimp punch and trap-jaw ant bite speeds
-- Elephant sleep (2 h, from one study of wild elephants); blue whale heart rate (as low as 2, typically quoted 8–10)
+- Elephant sleep (2 h, from one study of wild elephants)
 - Lifespans: queen termite, Greenland shark, bowhead whale, macaw
 - Counts that are estimates: trees, ants, chickens, stars in the Milky Way, languages in Papua New Guinea, bones in a newborn
-- Kiwi and emu egg weights; lion's mane jellyfish and bootlace worm lengths
+- Lion's mane jellyfish and bootlace worm lengths
 - Khmer alphabet letter count (depends on what is counted)
 - Populations (2020s figures; these drift)
 - Taste bud counts, scallop and box jellyfish eye counts, density of fresh snow
