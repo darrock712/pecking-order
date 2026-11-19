@@ -1,74 +1,88 @@
 # Peckish
 
-**Play it: https://darrock712.github.io/pecking-order/**
+**A daily ordering puzzle. Play it: https://darrock712.github.io/pecking-order/**
 
 <img src="docs/start.png" alt="Peckish start screen: five birds on a wire, smallest to largest, above today's three rounds and a Play button" width="420">
 
-A daily ordering puzzle. Each day everyone gets the same three rounds: five things and a rule ("lightest → heaviest", "oldest → newest"). Put them in the numbered slots (the labels say what goes in slot 1 and slot 5), lock it in, and watch the answer resolve one tile at a time. You get two pecks per round: lock in, read the colours, fix it once.
+Every day, everyone gets the same three rounds. Each round is five things and a rule ("weakest → strongest bite", "oldest → newest"). Put them in the numbered slots, lock it in, and watch the answer resolve one tile at a time, with bars that show how far apart the real values are. It takes about a minute, runs entirely in the browser, and needs no account.
 
-It takes about a minute a day, runs entirely in the browser, and needs no account.
+I built it as a portfolio project: a small, finished product with real users in mind, rather than a tutorial clone.
+
+## Tech
+
+- **React 19 + TypeScript (strict)**, built with **Vite**, plain CSS (no UI library)
+- **Vitest**: 221 unit tests covering the game rules, date maths, save loading and the puzzle content itself
+- **oxlint** for linting
+- **GitHub Actions**: every push runs lint, tests and build, then deploys to **GitHub Pages**
+- **PWA**: web manifest and a network-first service worker, so it installs to a home screen and plays offline
+- **Canvas + Web Share API** for the result card, **Web Audio** for synthesised sound, the **Vibration API** for haptics
+- No backend: progress lives in `localStorage`
+
+## How it works
+
+- **The game core is pure functions with no React** (`src/game/`): the daily deal, the seeded shuffle, scoring, stats and save parsing. The UI only calls them, so the rules are tested in isolation.
+- **Sets are stored in their correct order.** An item is right when its index equals its slot, which keeps scoring to a few lines and makes content mistakes easy to spot in review.
+- **Everyone gets the same puzzle.** The puzzle number comes from the player's local date, projected onto UTC midnight before subtracting, so daylight-saving changes never skip or repeat a day. The starting shuffle is seeded by the day.
+- **Content is validated in CI.** Tests check every set has five unique items in rising order, values far enough apart to be a fair question, a teaser, and a matching set for hard mode. Bad content fails the build.
+- **Saved data is never trusted.** Old, half-written or hand-edited saves are rebuilt field by field, so they can't crash the game or fake a score. A first peck and a used hint are saved straight away, so reloading can't buy a fresh try.
+- **Accessible by default.** Tiles keep a stable DOM order and move with CSS, so keyboard focus is never lost while reordering. Drag, tap-to-swap or arrow keys all work; screen readers get labels and live announcements; reduced-motion is respected.
+- **Sharing is spoiler-free.** The result is an emoji grid, plus a PNG card drawn on a canvas. On phones it goes to the native share sheet (as an image where supported); desktops copy the text, and "Save image" downloads the card.
 
 ## Features
 
-- **Three rounds a day**: a warm-up, a trickier one, and a twist round built around something counterintuitive.
-- **Mixed-bag rounds** every other day from day 5: five things counted in five different units (pieces, inches, pounds, calories, mph), ranked by the bare number.
-- **No category twice in a day**: the dealer skips ahead rather than repeat one.
-- **Two pecks per round**: a tile fixed on the second peck scores 4 instead of 6. Tiles flip green (right spot), amber (one place off) or red, with the real value beside each.
-- **The reveal shows scale**: each tile grows a bar for its value, then every tile slides to where it really belongs, so you see how wrong (or right) you were at a glance.
-- **Near misses are named**: "one swap away" rather than a bare score.
-- **Hard mode** hides the rule. You get one solved example set and have to work out what the order means before arranging your own.
-- **Streak that counts days played**, not days won. A low score never breaks it.
-- **Spoiler-free sharing**: an emoji grid plus a teaser line.
-- **Progress at a glance**: round pips with a running score, and a meter comparing today with your average.
+- **Three rounds a day**: a warm-up, a trickier one, and a twist.
+- **Two pecks per round**: lock in, see which tiles are right, one place off or further, then fix it once.
+- **One hint per round**: pick a slot and ask "Is it right?", or reveal that tile's value. The answer stays on the tile; a hinted round keeps its points but can't be perfect, and the share shows a 💡.
+- **Mixed-bag rounds** every other day from day 5: five things in five different units, ranked by the bare number.
+- **The reveal shows scale**: each tile grows a bar for its value, then slides to where it really belongs.
+- **Hard mode** hides the rule and gives one solved example set as the only clue.
+- **Streak counts days played**, not days won, and points build a rank from Egg to Top Bird.
 - **Practice rounds** and an **archive** of past days, neither of which affects stats.
-- Drag, tap-to-swap, or arrow keys; screen-reader labels and live announcements; light and dark themes; reduced-motion support; installable and playable offline.
+- Light and dark themes, installable, works offline.
 
 ## Scoring
 
 | | Points |
 |---|---|
-| Item in the right spot | 6 |
-| Item one place off | 3 |
-| Perfect round bonus | 3 |
-| Perfect day bonus | 1 |
+| Tile in the right slot | 6 |
+| Tile fixed on the second peck | 4 |
+| Tile one place off | 3 |
+| Perfect round (right first time, no hint) | +3 |
+| Perfect day | +1 |
 
 A round is worth up to 33, so three perfect rounds plus the day bonus make exactly 100.
 
 ## Run it
 
+Needs Node 22 or later.
+
 ```bash
 npm install
-npm run dev      # local dev server
+npm run dev      # local dev server (add ?day=N to jump to a puzzle in dev)
 npm test         # unit tests + content validation
 npm run lint
 npm run build    # production build in dist/
+npm run og       # regenerate public/og.png from public/og.svg (uses a local Chrome or Edge)
 ```
-
-## How it is built
-
-React + TypeScript + Vite, plain CSS, no backend. Progress is stored in `localStorage`.
 
 ```
 src/
-  game/         pure functions, no React, fully unit tested
-    daily.ts      puzzle number from the local date, set selection, seeded shuffle, hard-mode example
-    scoring.ts    marks, points, verdicts, share text
-    stats.ts      streak and totals
-    storage.ts    localStorage with safe fallbacks
-  data/
-    sets.ts       the puzzle content
-    sets.test.ts  content rules, enforced in CI
-  components/   Round (arrange + reveal), Summary, visual effects
-  lib/          number formatting, bar scaling, synthesised sound and haptics
+  game/         pure rules, no React: daily deal, scoring, stats, save parsing
+  data/         the puzzle content and its validation tests
+  components/   Home, Round (arrange, hint, reveal), Summary, help dialog
+  lib/          number formatting, share card drawing, sound and haptics
+scripts/        og image generator
 ```
 
-Design decisions worth knowing:
+## What I learned
 
-- **Sets are stored in their correct order.** An item is right when its index equals its position, which keeps scoring to a few lines and makes content errors easy to spot in review.
-- **The puzzle number comes from the player's local calendar date**, projected onto UTC midnight before subtracting, so daylight-saving changes can never skip or repeat a day.
-- **The starting shuffle is seeded by the day**, so every player sees the same starting order. It never starts with more than one item already in place.
-- **Tiles keep a stable DOM order and move with CSS**, so focus is never lost while reordering with the keyboard.
-- **The service worker is network-first**, so fixes and new puzzles arrive immediately and the cache is only a fallback when offline.
+- **Separating rules from UI pays off.** Keeping the game logic as plain functions meant I could test scoring, the date maths and the content without touching React, and change the UI freely.
+- **Dates are harder than they look.** A naive "days since launch" breaks on daylight-saving changes; working in UTC midnights fixed it.
+- **Tests can guard content, not just code.** The puzzle data is the product, so CI checks it the same way it checks the logic.
+- **Never trust what's in storage.** Validating saves on load turned a class of crashes (and easy cheating) into a non-issue.
+- **Accessibility needs testing on a real device size.** A phone-width pass found small tap targets and a dialog that dropped keyboard focus on Escape; both are fixed.
+- **Browser APIs have sharp edges.** Safari only opens the share sheet straight from a tap, so the share card is drawn ahead of time rather than when the button is pressed.
+- **Scope is a feature.** Things that need a server, like "you beat 80% of players", are written up below instead of half-built.
 
 ## Content
 
