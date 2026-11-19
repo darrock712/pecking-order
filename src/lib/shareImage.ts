@@ -14,7 +14,7 @@ const C = {
   miss: '#ef6a5b',
 }
 const MARK: Record<Mark, string> = { hit: C.hit, near: C.near, miss: C.miss }
-const FONT = "'Bricolage Grotesque', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
+const FONT = "'Bricolage Grotesque Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
 
 export const CARD_W = 1080
 export const CARD_H = 1080
