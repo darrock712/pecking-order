@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { categoryFor } from '../data/icons'
 import { msUntilNextDay } from '../game/daily'
 import { DAY_MAX, isPerfectRound, roundTone, scoreDay, shareText } from '../game/scoring'
@@ -6,6 +6,7 @@ import type { Stats } from '../game/stats'
 import type { DayRecord, Mark, PuzzleSet } from '../game/types'
 import { playFanfare } from '../lib/feedback'
 import { formatCountdown } from '../lib/format'
+import { shareCardBlob } from '../lib/shareImage'
 import { Bird } from './Bird'
 import { Confetti, CountUp } from './Effects'
 import { RankCard } from './RankCard'
@@ -52,20 +53,58 @@ export function Summary({ day, record, sets, stats, fresh, muted, onPractice, on
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  const url = location.origin + location.pathname
+  // Drawn ahead of time: Safari only opens the share sheet straight from the tap.
+  const image = useRef<File | null>(null)
+  useEffect(() => {
+    let live = true
+    void shareCardBlob(day, record, sets, url).then((blob) => {
+      if (live && blob) image.current = new File([blob], `peckish-${day}.png`, { type: 'image/png' })
+    })
+    return () => {
+      live = false
+    }
+  }, [day, record, sets, url])
+
+  const saveImage = () => {
+    const file = image.current
+    if (!file) return
+    const href = URL.createObjectURL(file)
+    const a = document.createElement('a')
+    a.href = href
+    a.download = file.name
+    a.click()
+    window.setTimeout(() => URL.revokeObjectURL(href), 1000)
+  }
+
   const share = async () => {
-    const url = location.origin + location.pathname
     const text = shareText(day, record, sets[2].teaser, url)
     try {
-      // Phones get the native share sheet; desktops copy to the clipboard.
+      // Phones get the native share sheet, with the result card when files are supported.
       if (navigator.share && matchMedia('(pointer: coarse)').matches) {
-        await navigator.share({ text })
+        const file = image.current
+        if (file && navigator.canShare?.({ files: [file] })) {
+          await navigator.share({ files: [file], text })
+        } else {
+          await navigator.share({ text })
+        }
         return
       }
+      // Desktops copy the text; the card is a click away on "Save image".
       await navigator.clipboard.writeText(text)
       setCopied(true)
       window.setTimeout(() => setCopied(false), 2000)
-    } catch {
-      // Share sheet dismissed or clipboard blocked; nothing to do.
+    } catch (err) {
+      // Share sheet dismissed: nothing to do. Anything else: fall back to text + image download.
+      if (err instanceof DOMException && err.name === 'AbortError') return
+      saveImage()
+      try {
+        await navigator.clipboard.writeText(text)
+        setCopied(true)
+        window.setTimeout(() => setCopied(false), 2000)
+      } catch {
+        // Clipboard blocked too; the downloaded image is the fallback.
+      }
     }
   }
 
@@ -117,9 +156,12 @@ export function Summary({ day, record, sets, stats, fresh, muted, onPractice, on
         ))}
       </ul>
 
-      <button type="button" className="primary" onClick={share}>
-        {copied ? 'Copied!' : 'Share result'}
-      </button>
+      <div className="share-row">
+        <button type="button" className="primary" onClick={share}>
+          {copied ? 'Copied!' : 'Share result'}
+        </button>
+        <button type="button" className="secondary" onClick={saveImage}>Save image</button>
+      </div>
 
       <dl className="stats">
         <div><dt>Streak</dt><dd>{stats.streak}</dd></div>
