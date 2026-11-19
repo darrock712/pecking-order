@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { categoryFor } from '../data/icons'
 import { msUntilNextDay } from '../game/daily'
+import { useInstall } from '../lib/install'
 import { DAY_MAX, isPerfectRound, roundTone, scoreDay, shareText } from '../game/scoring'
 import type { Stats } from '../game/stats'
 import type { DayRecord, Mark, PuzzleSet } from '../game/types'
@@ -41,6 +42,7 @@ export function Summary({ day, record, sets, stats, fresh, muted, onPractice, on
   const best = Math.max(1, ...record.rounds.map((r) => r.score))
   const [copied, setCopied] = useState(false)
   const [remaining, setRemaining] = useState(() => msUntilNextDay(new Date()))
+  const { install } = useInstall()
 
   useEffect(() => {
     const timer = window.setInterval(() => setRemaining(msUntilNextDay(new Date())), 1000)
@@ -176,6 +178,11 @@ export function Summary({ day, record, sets, stats, fresh, muted, onPractice, on
       <p className="countdown">
         Next puzzle in <strong>{formatCountdown(remaining)}</strong>
       </p>
+      {install && (
+        <button type="button" className="secondary install" onClick={install}>
+          📲 Add Peckish to your home screen
+        </button>
+      )}
       {tomorrow && (
         <p className="tomorrow">
           <b>Tomorrow</b>
