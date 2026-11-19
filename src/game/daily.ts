@@ -138,5 +138,10 @@ export function exampleFor(
       !s.items.some(([name]) => names.has(name)),
   )
   if (matches.length === 0) return undefined
-  return matches[all.indexOf(set) % matches.length]
+  // The clearest clue first: same unit (lengths in metres for metres), and never a twist set,
+  // whose items stretch the rule (ocean depths filed under length).
+  const clarity = (s: PuzzleSet) => (s.unit === set.unit ? 0 : 2) + (s.difficulty === 'twist' ? 1 : 0)
+  const best = Math.min(...matches.map(clarity))
+  const clearest = matches.filter((s) => clarity(s) === best)
+  return clearest[all.indexOf(set) % clearest.length]
 }

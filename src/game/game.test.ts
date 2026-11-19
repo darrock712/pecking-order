@@ -89,6 +89,15 @@ describe('exampleFor', () => {
     expect(example!.key).toBe('weight')
   })
 
+  it('prefers a same-unit, non-twist example', () => {
+    const puzzle = { ...POOL[0], unit: 'm', items: [['p', 1], ['q', 2], ['r', 3], ['s', 4], ['t', 5]] } as PuzzleSet
+    const twist = { ...puzzle, difficulty: 'twist', items: [['a', 1], ['b', 2], ['c', 3], ['d', 4], ['e', 5]] } as PuzzleSet
+    const km = { ...puzzle, unit: 'km', items: [['f', 1], ['g', 2], ['h', 3], ['i', 4], ['j', 5]] } as PuzzleSet
+    const clear = { ...puzzle, difficulty: 'medium', items: [['k', 1], ['l', 2], ['m', 3], ['n', 4], ['o', 5]] } as PuzzleSet
+    expect(exampleFor(puzzle, [puzzle, twist, km, clear])).toBe(clear)
+    expect(exampleFor(puzzle, [puzzle, twist, km])).toBe(twist)
+  })
+
   it('never shares an item with the puzzle', () => {
     const twin = { ...POOL[0], items: [['a', 9], ['x', 10], ['y', 11], ['z', 12], ['w', 13]] } as PuzzleSet
     expect(exampleFor(twin, [twin, POOL[0]])).toBeUndefined()
@@ -145,7 +154,7 @@ describe('second peck', () => {
     expect(fixed.score).toBe(6 + 4 * 4)
     expect(fixed.first).toEqual(first)
     expect(isPerfectRound(fixed)).toBe(false)
-    expect(verdict(fixed.order, true)).toMatch(/second peck/)
+    expect(verdict(fixed.order, true)).toMatch(/second try/)
   })
 
   it('never beats getting it right the first time', () => {
