@@ -1,6 +1,6 @@
 // Offline support. Pages are fetched fresh when online (so new puzzles and
 // fixes arrive straight away) and fall back to the cache when offline.
-const CACHE = 'peckish-v1'
+const CACHE = 'peckish-v2'
 
 self.addEventListener('install', () => self.skipWaiting())
 self.addEventListener('activate', (event) => {
@@ -15,10 +15,16 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     fetch(request)
       .then((response) => {
-        const copy = response.clone()
-        caches.open(CACHE).then((cache) => cache.put(request, copy))
+        // Only keep good same-origin answers: never cache an error page or a redirect.
+        if (response.ok && response.type === 'basic') {
+          const copy = response.clone()
+          caches.open(CACHE).then((cache) => cache.put(request, copy)).catch(() => {})
+        }
         return response
       })
-      .catch(() => caches.match(request).then((hit) => hit ?? caches.match('./'))),
+      // Offline: the cached copy, or the app shell for page loads only (never as a script or image).
+      .catch(() =>
+        caches.match(request).then((hit) => hit ?? (request.mode === 'navigate' ? caches.match('./') : Response.error())),
+      ),
   )
 })
