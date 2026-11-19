@@ -44,7 +44,11 @@ export function Home({ day, sets, record, hard, stats, onPlay, onArchive, onPrac
         <h1>
           Who’s <em>really</em> on top?
         </h1>
-        <p className="hero-sub">Five things. One right order. Two tries to get it.</p>
+        {!finished && stats.streak > 0 ? (
+          <p className="hero-sub hero-streak">🔥 Play today for a {stats.streak + 1}-day streak.</p>
+        ) : (
+          <p className="hero-sub">Five things. One right order. Two tries to get it.</p>
+        )}
 
         <ol className="menu">
           {sets.map((set, i) => {

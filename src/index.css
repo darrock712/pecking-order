@@ -207,6 +207,7 @@ footer { margin-top: 18px; text-align: center; }
 .stats dd { font-family: var(--display); font-size: 1.5rem; font-weight: 800; }
 .countdown { margin-top: 16px; color: var(--muted); }
 .countdown strong { color: var(--ink); font-variant-numeric: tabular-nums; }
+.install { display: block; width: 100%; margin-top: 12px; }
 
 .archive ul { display: grid; gap: 6px; margin: 10px 0 16px; }
 .archive-row { width: 100%; display: flex; justify-content: space-between; padding: 14px; background: var(--card); border: 1.5px solid var(--line); border-radius: 12px; font-weight: 600; }
@@ -246,6 +247,7 @@ footer { margin-top: 18px; text-align: center; }
 .hero h1 { margin: 0; font-family: var(--display); font-weight: 800; font-size: clamp(2.3rem, 11vw, 3.4rem); line-height: 0.98; letter-spacing: -0.04em; text-wrap: balance; }
 .hero h1 em { font-style: normal; color: var(--hero-deep); background: var(--pop); padding: 0 0.16em; border-radius: 0.2em; display: inline-block; transform: rotate(-2.5deg); }
 .hero-sub { margin-top: 12px; opacity: 0.85; font-weight: 550; }
+.hero-streak { opacity: 1; font-weight: 700; color: var(--pop); }
 .menu { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 22px 0 20px; }
 .menu li { display: grid; gap: 2px; padding: 10px 4px 9px; border-radius: 16px; background: rgb(255 255 255 / 0.09); border: 1.5px solid rgb(255 255 255 / 0.14); }
 .menu li.done { background: rgb(255 255 255 / 0.2); }
