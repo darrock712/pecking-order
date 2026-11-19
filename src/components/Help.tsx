@@ -1,15 +1,20 @@
 import { useEffect, useRef } from 'react'
 
 /**
- * "How to play", as a native modal dialog: the browser traps focus, closes it
- * on Escape and hands focus back to the button that opened it.
+ * "How to play", as a native modal dialog: the browser traps focus and closes it
+ * on Escape; focus goes back to the button that opened it.
  */
 export function Help({ onClose }: { onClose: () => void }) {
   const ref = useRef<HTMLDialogElement>(null)
+  // Taken on first render, before the dialog grabs focus.
+  const opener = useRef(document.activeElement instanceof HTMLElement ? document.activeElement : null)
 
   useEffect(() => {
     const dialog = ref.current
     if (dialog && !dialog.open) dialog.showModal()
+    // The dialog unmounts on Escape before the browser can restore focus, so do it here.
+    const back = opener.current
+    return () => back?.focus({ preventScroll: true })
   }, [])
 
   // Closing the element restores focus; calling onClose directly means the
