@@ -82,10 +82,16 @@ describe('shuffledOrder', () => {
 
 describe('exampleFor', () => {
   it('picks a different set with the same rule', () => {
-    const example = exampleFor(POOL[0], POOL)
+    const puzzle = { ...POOL[0], items: [['p', 1], ['q', 2], ['r', 3], ['s', 4], ['t', 5]] } as PuzzleSet
+    const example = exampleFor(puzzle, [puzzle, ...POOL])
     expect(example).toBeDefined()
-    expect(example).not.toBe(POOL[0])
+    expect(example).not.toBe(puzzle)
     expect(example!.key).toBe('weight')
+  })
+
+  it('never shares an item with the puzzle', () => {
+    const twin = { ...POOL[0], items: [['a', 9], ['x', 10], ['y', 11], ['z', 12], ['w', 13]] } as PuzzleSet
+    expect(exampleFor(twin, [twin, POOL[0]])).toBeUndefined()
   })
 
   it('skips excluded sets and returns undefined when nothing matches', () => {

@@ -119,15 +119,23 @@ export function shuffledOrder(count: number, seed: number): number[] {
 
 /**
  * Hard mode hides the rule and instead shows a different set, already in
- * order, that follows the same rule. Returns undefined if no such set exists.
+ * order, that follows the same rule and shares no item with it. Returns
+ * undefined if no such set exists (the rule is then shown instead).
  */
 export function exampleFor(
   set: PuzzleSet,
   all: readonly PuzzleSet[],
   exclude: readonly PuzzleSet[] = [],
 ): PuzzleSet | undefined {
+  const names = new Set(set.items.map(([name]) => name))
+  // An example sharing an item with the puzzle would give that item's place away.
   const matches = all.filter(
-    (s) => s !== set && s.key === set.key && s.rule === set.rule && !exclude.includes(s),
+    (s) =>
+      s !== set &&
+      s.key === set.key &&
+      s.rule === set.rule &&
+      !exclude.includes(s) &&
+      !s.items.some(([name]) => names.has(name)),
   )
   if (matches.length === 0) return undefined
   return matches[all.indexOf(set) % matches.length]

@@ -17,7 +17,7 @@ type View =
   | { kind: 'archive' }
   | { kind: 'practice'; set: PuzzleSet; seed: number }
 
-const ROUND_NAMES = ['Round 1 · warm-up', 'Round 2 · trickier', 'Round 3 · the twist']
+const ROUND_NAMES = ['warm-up', 'trickier', 'the twist']
 
 function Logo() {
   return (
@@ -212,7 +212,7 @@ export default function App() {
             example={hard ? exampleFor(set, SETS, sets) : undefined}
             hard={hard}
             seed={day * 10 + roundIndex}
-            label={`#${day} · ${set.units ? `Round ${roundIndex + 1} · mixed bag` : ROUND_NAMES[roundIndex]}`}
+            label={`#${day} · ${set.units ? 'mixed bag' : ROUND_NAMES[roundIndex]}`}
             showHint={isNewPlayer && roundIndex === 0}
             muted={save.muted}
             nextLabel={roundIndex === 2 ? 'See my score' : 'Next round'}

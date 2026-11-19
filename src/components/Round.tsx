@@ -8,7 +8,7 @@ import { Confetti, CountUp } from './Effects'
 
 interface Props {
   set: PuzzleSet
-  /** Hard mode: the rule is hidden and this solved set is shown as the only clue. */
+  /** Hard mode: the rule is hidden and this solved set is the only clue. Without one, the rule shows. */
   example?: PuzzleSet
   hard: boolean
   seed: number
@@ -92,7 +92,9 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
   const [firstEnd, lastEnd] = endLabels(set.rule)
   // A mixed-bag round has no rule to guess: the units on the tiles are the puzzle.
   const mixed = set.units !== undefined
-  const ruleHidden = hard && !mixed && phase === 'arrange'
+  const ruleHidden = hard && !mixed && !!example && phase === 'arrange'
+  // Hard mode's only clue is the solved example: no slot hints on top of it.
+  const hintsAllowed = !hard
   const name = (item: number) => set.items[item][0]
 
   // The reveal: tiles resolve one at a time from the top, with a held beat before the last.
@@ -301,9 +303,9 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
         <h2 className="rule">{ruleHidden ? 'Hidden rule' : set.rule}</h2>
       </div>
 
-      {hard && example && phase === 'arrange' && (
+      {ruleHidden && example && (
         <div className="example">
-          <p>Your only clue — these are in the right order:</p>
+          <p>Same rule, already solved:</p>
           <ol>
             {example.items.map(([itemName]) => (
               <li key={itemName}>{itemName}</li>
@@ -326,9 +328,11 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
         </p>
       )}
 
-      <p className="end-label">
-        <b>1</b> = {ruleHidden ? '?' : firstEnd}
-      </p>
+      {!ruleHidden && (
+        <p className="end-label">
+          <b>1</b> = {firstEnd}
+        </p>
+      )}
       <div className={mixed ? 'board mixed' : 'board'} style={{ ['--count' as string]: count }}>
         <ol className="slots" aria-hidden="true">
           {set.items.map((_, slot) => (
@@ -413,9 +417,11 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
           })}
         </ol>
       </div>
-      <p className="end-label">
-        <b>{count}</b> = {ruleHidden ? '?' : lastEnd}
-      </p>
+      {!ruleHidden && (
+        <p className="end-label">
+          <b>{count}</b> = {lastEnd}
+        </p>
+      )}
 
       <p className="sr-only" aria-live="polite">{announcement}</p>
 
@@ -440,7 +446,7 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
         </div>
       )}
 
-      {phase === 'arrange' && !locking && !picking && asking === null && (
+      {hintsAllowed && phase === 'arrange' && !locking && !picking && asking === null && (
         <button type="button" className="hint-btn" ref={hintRef} disabled={!!hint} onClick={startHint}>
           {hint ? '💡 Hint used' : '💡 Use a hint (1 per round)'}
         </button>
@@ -461,7 +467,7 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
           <p className="points">
             +<CountUp value={locked.score} places={0} /> <span>of {ROUND_MAX}</span>
           </p>
-          {hard && <p className="rule-reveal">The rule was: {set.rule}</p>}
+          {hard && example && !mixed && <p className="rule-reveal">The rule was: {set.rule}</p>}
           {scale.log && <p className="scale-note">Bars use a log scale. The real gaps are even bigger.</p>}
           <button type="button" className="primary" ref={nextRef} onClick={onNext}>
             {nextLabel}

@@ -338,7 +338,7 @@ const FUN: PuzzleSet[] = [
     'One sweet’s serving size is exactly one.'),
   s('strength', T, 'psi', [['German shepherd bite', 238, 'about 240 psi'], ['Lion bite', 650, 'about 650 psi'], ['Tiger bite', 1050, 'about 1,050 psi'], ['Gorilla bite', 1300, 'about 1,300 psi'], ['Jaguar bite', 1500, 'about 1,500 psi']],
     'The king of the jungle loses this one.'),
-  s('spicy', T, 'Scoville units', [['Sriracha', 2200, 'about 2,200'], ['Cayenne pepper', 40000, 'about 40,000'], ['Ghost pepper', 1000000, 'about 1 million'], ['Pepper X', 2690000, 'about 2.7 million'], ['Pure capsaicin', 16000000, '16 million']],
+  s('spicy', T, 'Scoville units', [['Sriracha', 2200, 'about 2,200'], ['Cayenne pepper', 40000, 'about 40,000'], ['Trinidad Moruga Scorpion', 1200000, 'about 1.2 million'], ['Pepper X', 2690000, 'about 2.7 million'], ['Pure capsaicin', 16000000, '16 million']],
     'A famous hot sauce is milder than you think.'),
   s('caffeine', T, 'mg', [['Cup of decaf coffee', 2, 'about 2 mg'], ['Cup of green tea', 28, 'about 28 mg'], ['Shot of espresso', 63, 'about 63 mg'], ['Cup of filter coffee', 95, 'about 95 mg'], ['Starbucks grande brewed coffee', 310, 'about 310 mg']],
     'The strongest-tasting coffee isn’t the strongest.'),
