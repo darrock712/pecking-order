@@ -46,7 +46,7 @@ I built it as a portfolio project: a small, finished product with real users in 
 | | Points |
 |---|---|
 | Tile in the right slot | 6 |
-| Tile fixed on the second peck | 4 |
+| Tile fixed on the second try | 4 |
 | Tile one place off | 3 |
 | Perfect round (right first time) | +3 |
 | Perfect day | +1 |

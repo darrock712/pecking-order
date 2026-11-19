@@ -69,7 +69,7 @@ export function swapsAway(order: readonly number[]): number {
 
 export function verdict(order: readonly number[], pecked = false): string {
   const swaps = swapsAway(order)
-  if (swaps === 0) return pecked ? 'Fixed it on the second peck' : 'Perfect!'
+  if (swaps === 0) return pecked ? 'Fixed it on the second try' : 'Perfect!'
   if (swaps === 1) return 'So close — one swap away'
   const hits = markOrder(order).filter((m) => m === 'hit').length
   if (hits === 0) return 'Scrambled — but now you know'

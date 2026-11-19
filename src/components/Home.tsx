@@ -23,7 +23,7 @@ export function Home({ day, sets, record, hard, stats, onPlay, onArchive, onPrac
   const played = record?.rounds ?? []
   const finished = played.length === 3
   const date = dateForDay(day).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })
-  const action = finished ? 'See today’s result' : played.length > 0 ? `Continue · round ${played.length + 1}` : 'Play today’s'
+  const action = finished ? 'See today’s result' : played.length > 0 ? `Continue · round ${played.length + 1}` : 'Play today’s puzzle'
 
   return (
     <section className="home" aria-label="Today’s puzzle">
@@ -44,7 +44,7 @@ export function Home({ day, sets, record, hard, stats, onPlay, onArchive, onPrac
         <h1>
           Who’s <em>really</em> on top?
         </h1>
-        <p className="hero-sub">Five things. One right order. Two pecks to get it.</p>
+        <p className="hero-sub">Five things. One right order. Two tries to get it.</p>
 
         <ol className="menu">
           {sets.map((set, i) => {

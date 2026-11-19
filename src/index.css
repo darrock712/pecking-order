@@ -77,9 +77,9 @@ nav { display: flex; align-items: center; gap: 5px; flex: none; }
 
 .example { border-left: 3px solid var(--hero); padding: 2px 0 2px 12px; margin-bottom: 12px; font-size: 0.88rem; }
 .example p { color: var(--muted); font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 2px; }
-.example ol { display: flex; flex-wrap: wrap; gap: 2px 0; }
-.example li { font-weight: 600; }
-.example li + li::before { content: '→'; margin: 0 6px; color: var(--muted); font-weight: 400; }
+.example ol { display: flex; flex-wrap: wrap; gap: 6px; counter-reset: clue; }
+.example li { counter-increment: clue; display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px 3px 4px; border-radius: 999px; background: var(--card); border: 1.5px solid var(--line); font-weight: 600; }
+.example li::before { content: counter(clue); display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--hero); color: var(--hero-ink); font-size: 0.72rem; font-weight: 800; }
 
 .tiles { position: relative; height: calc(var(--row) * var(--count)); }
 .tile-slot { position: absolute; left: 0; right: 0; height: var(--row); padding: 4px 0; transition: top 0.2s cubic-bezier(0.2, 0.8, 0.2, 1); }
@@ -307,6 +307,7 @@ footer { margin-top: 18px; text-align: center; }
 }
 
 /* Hint: one per round. A quiet button, a pick-a-tile mode, then two choices. */
+.skip { display: block; margin: 12px auto 0; }
 .check-row { margin-top: 12px; text-align: center; font-size: 0.92rem; }
 .check-row p { color: var(--muted); }
 .hint-btn { display: block; margin: 12px auto 0; min-height: 44px; padding: 10px 16px; border: 1.5px dashed color-mix(in srgb, var(--pop-deep) 70%, var(--line)); border-radius: 999px; background: transparent; color: var(--ink); font-weight: 700; font-size: 0.9rem; }

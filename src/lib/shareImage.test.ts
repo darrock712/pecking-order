@@ -48,7 +48,7 @@ describe('share card', () => {
     expect(texts).toContain('No. 12')
     expect(texts).toContain('75')
     expect(texts).toContain('example.com/peckish')
-    expect(texts.join(' ')).toMatch(/2nd peck/)
+    expect(texts.join(' ')).toMatch(/2nd try/)
     expect(texts.join(' ')).toMatch(/💡 hint/)
     expect(texts.join(' ')).not.toMatch(/Secret/)
   })

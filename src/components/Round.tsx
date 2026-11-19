@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { shuffledOrder } from '../game/daily'
-import { CHECKS, POINTS, ROUND_MAX, isPerfectRound, scoreRound, verdict } from '../game/scoring'
+import { CHECKS, ROUND_MAX, isPerfectRound, scoreRound, verdict } from '../game/scoring'
 import type { Check, PuzzleSet, RoundResult } from '../game/types'
 import { playFanfare, playLock, playMark, playTick, prefersReducedMotion } from '../lib/feedback'
 import { endLabels, formatValue, isCountable, scaleValues, unitOf } from '../lib/format'
@@ -107,6 +107,14 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
     )
     return () => timers.forEach(clearTimeout)
   }, [phase, locked, count, muted])
+
+  // Impatient? Show every tile at once.
+  const skipReveal = () => {
+    if (phase !== 'reveal' || !locked) return
+    setRevealed(count)
+    setPhase('done')
+    if (isPerfectRound(locked)) playFanfare(muted)
+  }
 
   // After the verdict has had a moment, slide every tile to where it really belongs.
   useEffect(() => {
@@ -255,7 +263,7 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
       setFirst([...order])
       onPeck?.([...order])
       playMark('miss', muted)
-      setAnnouncement(`Not quite. Check up to ${CHECKS} tiles, then lock your final answer.`)
+      setAnnouncement(`Not quite. Check up to ${CHECKS} tiles for a clue, then have one more go.`)
       return
     }
     const result = scoreRound(order, first ?? undefined)
@@ -282,12 +290,12 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
     >
       <div className="round-head">
         <p className="round-label">{label}</p>
-        <h2 className="rule">{ruleHidden ? 'Hidden rule' : set.rule}</h2>
+        <h2 className="rule">{ruleHidden ? 'Mystery rule' : set.rule}</h2>
       </div>
 
       {ruleHidden && example && (
         <div className="example">
-          <p>Same rule, already solved:</p>
+          <p>These are in order. Spot the rule:</p>
           <ol>
             {example.items.map(([itemName]) => (
               <li key={itemName}>{itemName}</li>
@@ -297,7 +305,7 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
       )}
 
       {mixed && !first && phase === 'arrange' && (
-        <p className="hint">Every tile counts something different. Ignore the units and rank the bare numbers.</p>
+        <p className="hint">Each tile counts something different. Just compare the numbers.</p>
       )}
 
       {showHint && !mixed && !first && phase === 'arrange' && (
@@ -306,7 +314,7 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
 
       {first && phase === 'arrange' && (
         <p className="peck-note">
-          <b>Not quite.</b> Check up to {CHECKS} tiles, then fix what you can. A fixed tile scores {POINTS.fixed}, not {POINTS.hit}.
+          <b>Not quite!</b> 🔍 Check up to {CHECKS} tiles for a clue, then have one more go.
         </p>
       )}
 
@@ -414,9 +422,13 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
       {phase === 'arrange' && (
         <button type="button" className={locking ? 'primary lock locking' : 'primary lock'} aria-disabled={locking} onClick={lock}>
           <span key={locking ? 'locked' : 'idle'}>
-            {locking ? 'Locked in ✓' : !first ? 'Lock it in' : unchanged ? 'Keep it as it is' : 'Final answer'}
+            {locking ? 'Locked in ✓' : !first ? 'Lock it in' : unchanged ? 'Show me the answer' : 'Final answer'}
           </span>
         </button>
+      )}
+
+      {phase === 'reveal' && (
+        <button type="button" className="hint-cancel skip" onClick={skipReveal}>Skip ›</button>
       )}
 
       {phase === 'done' && locked && (
@@ -427,7 +439,7 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
             +<CountUp value={locked.score} places={0} /> <span>of {ROUND_MAX}</span>
           </p>
           {hard && example && !mixed && <p className="rule-reveal">The rule was: {set.rule}</p>}
-          {scale.log && <p className="scale-note">Bars use a log scale. The real gaps are even bigger.</p>}
+          {scale.log && <p className="scale-note">Bars are squeezed to fit. The real gaps are even bigger.</p>}
           <button type="button" className="primary" ref={nextRef} onClick={onNext}>
             {nextLabel}
           </button>

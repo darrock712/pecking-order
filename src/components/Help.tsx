@@ -39,10 +39,10 @@ export function Help({ onClose }: { onClose: () => void }) {
         <ul>
           <li>Three rounds a day. Put five things in order, then lock it in.</li>
           <li>The slots are numbered. The labels above and below the tiles say what goes in slot 1 and slot 5.</li>
-          <li>Two pecks per round. Wrong first time? You only hear <strong>not quite</strong>. 🔍 Check two tiles (right or wrong where they sit), then fix it once — or keep it.</li>
+          <li>Two tries per round. Wrong the first time? 🔍 Check two tiles to see if they’re in the right spot, then have one more go.</li>
           <li>The reveal: 🟩 right spot · 🟨 one place off · 🟥 two or more off.</li>
-          <li>Right first time scores 6 a tile. A tile you fix on the second peck scores 4.</li>
-          <li><strong>Mixed bag</strong> rounds count every tile in a different unit. Rank the bare numbers.</li>
+          <li>Right first time scores 6 a tile. A tile you fix on the second try scores 4.</li>
+          <li><strong>Mixed bag</strong> rounds count a different thing on every tile. Just compare the numbers.</li>
           <li>Every point counts towards your rank, from Egg to Top Bird.</li>
           <li>Your streak counts days played. A low score never breaks it.</li>
           <li><strong>Hard mode</strong> hides the rule. You only get a solved example to work out what the order means.</li>

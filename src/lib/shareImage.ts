@@ -128,7 +128,7 @@ export function drawShareCard(ctx: CanvasRenderingContext2D, day: number, record
     ctx.fillText(name, textX, y + 36)
     ctx.globalAlpha = 0.75
     ctx.font = `600 32px ${FONT}`
-    ctx.fillText(`${round.score} pts${round.first ? ' · 2nd peck' : ''}${round.hint ? ' · 💡 hint' : ''}`, textX, y + 72)
+    ctx.fillText(`${round.score} pts${round.first ? ' · 2nd try' : ''}${round.hint ? ' · 💡 hint' : ''}`, textX, y + 72)
     ctx.globalAlpha = 1
     y += cell + rowGap
   })
