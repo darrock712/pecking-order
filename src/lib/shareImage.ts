@@ -89,6 +89,7 @@ export function drawShareCard(ctx: CanvasRenderingContext2D, day: number, record
     bird(ctx, x, wireY - 46 * scale + 2, scale, MARK[roundTone(round.score)], round.score === best)
   })
 
+  ctx.fillStyle = C.ink
   ctx.textAlign = 'center'
   ctx.font = `800 200px ${FONT}`
   const scoreText = String(total)
@@ -127,7 +128,7 @@ export function drawShareCard(ctx: CanvasRenderingContext2D, day: number, record
     ctx.fillText(name, textX, y + 36)
     ctx.globalAlpha = 0.75
     ctx.font = `600 32px ${FONT}`
-    ctx.fillText(`${round.score} pts${round.first ? ' · second peck' : ''}`, textX, y + 72)
+    ctx.fillText(`${round.score} pts${round.first ? ' · 2nd peck' : ''}${round.hint ? ' · 💡 hint' : ''}`, textX, y + 72)
     ctx.globalAlpha = 1
     y += cell + rowGap
   })

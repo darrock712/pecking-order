@@ -298,3 +298,17 @@ footer { margin-top: 18px; text-align: center; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* Hint: one per round. A quiet button, a pick-a-tile mode, then two choices. */
+.hint-btn { display: block; margin: 12px auto 0; min-height: 44px; padding: 10px 16px; border: 1.5px dashed color-mix(in srgb, var(--pop-deep) 70%, var(--line)); border-radius: 999px; background: transparent; color: var(--ink); font-weight: 700; font-size: 0.9rem; }
+.hint-btn:hover:not(:disabled) { background: color-mix(in srgb, var(--pop) 18%, var(--card)); }
+.hint-btn:disabled { border-style: solid; border-color: var(--line); color: var(--muted); cursor: default; }
+.hint-panel { margin-top: 12px; padding: 10px 12px; border-radius: 14px; background: color-mix(in srgb, var(--pop) 22%, var(--card)); border: 1.5px solid color-mix(in srgb, var(--pop) 60%, var(--line)); font-size: 0.92rem; text-align: center; animation: rise 0.25s ease-out; }
+.hint-panel p { margin-bottom: 8px; overflow-wrap: anywhere; }
+.hint-choices { display: flex; gap: 8px; margin-bottom: 4px; }
+.hint-choices .secondary { flex: 1; min-height: 44px; }
+.hint-cancel { min-height: 44px; padding: 8px 18px; border: 0; background: transparent; color: var(--muted); font-weight: 700; text-decoration: underline; }
+.tile.picking { border-color: var(--pop); border-style: dashed; }
+.tile-clue { display: block; margin-top: 2px; color: var(--pop-deep); font-size: 0.78rem; font-weight: 700; }
+.tile-clue.yes { color: var(--hit); }
+.tile-clue.no { color: var(--miss); }

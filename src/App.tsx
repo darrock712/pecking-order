@@ -9,7 +9,7 @@ import { dateForDay, dayNumber, exampleFor } from './game/daily'
 import { DAY_MAX, roundTone, scoreDay } from './game/scoring'
 import { computeStats } from './game/stats'
 import { loadSave, storeSave } from './game/storage'
-import type { PuzzleSet, RoundResult, Save } from './game/types'
+import type { Hint, PuzzleSet, RoundResult, Save } from './game/types'
 
 type View =
   | { kind: 'home' }
@@ -88,7 +88,7 @@ export default function App() {
     setSave((s) => {
       const existing = s.days[day]
       const record = existing ?? { rounds: [], hard: s.hard, live: day === today }
-      return { ...s, days: { ...s.days, [day]: { ...record, pending: undefined, rounds: [...record.rounds, result] } } }
+      return { ...s, days: { ...s.days, [day]: { ...record, pending: undefined, pendingHint: undefined, rounds: [...record.rounds, result] } } }
     })
   }
 
@@ -97,6 +97,14 @@ export default function App() {
     setSave((s) => {
       const record = s.days[day] ?? { rounds: [], hard: s.hard, live: day === today }
       return { ...s, days: { ...s.days, [day]: { ...record, pending: order } } }
+    })
+  }
+
+  // Same for the hint: once used, it stays used.
+  const hintRound = (day: number, hint: Hint) => {
+    setSave((s) => {
+      const record = s.days[day] ?? { rounds: [], hard: s.hard, live: day === today }
+      return { ...s, days: { ...s.days, [day]: { ...record, pendingHint: hint } } }
     })
   }
 
@@ -209,7 +217,9 @@ export default function App() {
             muted={save.muted}
             nextLabel={roundIndex === 2 ? 'See my score' : 'Next round'}
             firstPeck={record?.pending}
+            usedHint={record?.pendingHint}
             onPeck={(order) => peckRound(day, order)}
+            onHint={(hint) => hintRound(day, hint)}
             onLock={(result) => lockRound(day, result)}
             onNext={() => {
               setJustFinished(roundIndex === 2)
@@ -222,7 +232,7 @@ export default function App() {
   }
 
   const viewed = view.kind === 'day' ? save.days[view.day] : undefined
-  const dayInProgress = !!viewed && (viewed.rounds.length % 3 !== 0 || !!viewed.pending)
+  const dayInProgress = !!viewed && (viewed.rounds.length % 3 !== 0 || !!viewed.pending || !!viewed.pendingHint)
 
   return (
     <div className="app">

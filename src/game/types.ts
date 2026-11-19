@@ -22,6 +22,15 @@ export interface PuzzleSet {
 /** 'hit' = right spot, 'near' = one position off, 'miss' = further away. */
 export type Mark = 'hit' | 'near' | 'miss'
 
+/** One hint per round: check whether the tile in a slot is right, or see its value. */
+export interface Hint {
+  kind: 'check' | 'value'
+  /** The tile asked about (its index in the correctly ordered items). */
+  item: number
+  /** The slot (0-based) it sat in when the hint was used. */
+  slot: number
+}
+
 export interface RoundResult {
   /** The player's order, as indexes into the set's (correctly ordered) items. */
   order: number[]
@@ -29,6 +38,8 @@ export interface RoundResult {
   score: number
   /** The first-peck order, kept only when the player changed it on the second peck. */
   first?: number[]
+  /** Set when the round used its hint, so the share shows a 💡. */
+  hint?: Hint
 }
 
 export interface DayRecord {
@@ -38,6 +49,8 @@ export interface DayRecord {
   live: boolean
   /** First-peck order of the round in play, so a reload can't buy a fresh first try. */
   pending?: number[]
+  /** Hint used on the round in play, kept so a reload can't buy a fresh one. */
+  pendingHint?: Hint
 }
 
 export interface Save {

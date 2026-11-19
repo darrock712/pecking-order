@@ -153,6 +153,23 @@ describe('second peck', () => {
   })
 })
 
+describe('hint', () => {
+  const check = { kind: 'check', item: 2, slot: 2 } as const
+
+  it('keeps the tile points but drops the perfect bonus', () => {
+    const hinted = scoreRound(SOLVED, undefined, check)
+    expect(hinted.hint).toEqual(check)
+    expect(hinted.score).toBe(ROUND_MAX - 3)
+    expect(isPerfectRound(hinted)).toBe(false)
+    expect(scoreRound([1, 0, 2, 3, 4], undefined, check).score).toBe(scoreRound([1, 0, 2, 3, 4]).score)
+  })
+
+  it('marks a hinted round with a bulb in the share grid', () => {
+    const record: DayRecord = { rounds: [scoreRound(SOLVED), scoreRound(SOLVED, [1, 0, 2, 3, 4], check), scoreRound(SOLVED)], live: true, hard: false }
+    expect(shareText(1, record, 't', 'u').split('\n').slice(1, 4)).toEqual(['🟩🟩🟩🟩🟩', '🟩🟩🟩🟩🟩 ↻ 💡', '🟩🟩🟩🟩🟩'])
+  })
+})
+
 describe('rankFor', () => {
   it('starts as an egg and climbs with points', () => {
     expect(rankFor(0)).toMatchObject({ level: 0, progress: 0 })

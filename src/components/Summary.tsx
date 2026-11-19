@@ -150,6 +150,7 @@ export function Summary({ day, record, sets, stats, fresh, muted, onPractice, on
             <span className="grid-row" aria-label={`Round ${i + 1}: ${round.marks.filter((m) => m === 'hit').length} of 5 in place`}>
               {round.marks.map((m) => EMOJI[m]).join('')}
               {round.first && <small> second peck</small>}
+              {round.hint && <small> 💡 hint</small>}
             </span>
             <span className="recap-name">{categoryFor(sets[i].key)[1]} · {round.score} pts</span>
           </li>

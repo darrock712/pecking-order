@@ -40,7 +40,7 @@ describe('share card', () => {
       rounds: [
         { order: [0, 1, 2, 3, 4], marks: ['hit', 'hit', 'hit', 'hit', 'hit'], score: 33 },
         { order: [1, 0, 2, 3, 4], marks: ['near', 'near', 'hit', 'hit', 'hit'], score: 24 },
-        { order: [4, 1, 2, 3, 0], marks: ['miss', 'hit', 'hit', 'hit', 'miss'], score: 18, first: [4, 2, 1, 3, 0] },
+        { order: [4, 1, 2, 3, 0], marks: ['miss', 'hit', 'hit', 'hit', 'miss'], score: 18, first: [4, 2, 1, 3, 0], hint: { kind: 'value', item: 0, slot: 4 } },
       ],
     }
     const { ctx, texts } = recordingContext()
@@ -48,7 +48,8 @@ describe('share card', () => {
     expect(texts).toContain('No. 12')
     expect(texts).toContain('75')
     expect(texts).toContain('example.com/peckish')
-    expect(texts.join(' ')).toMatch(/second peck/)
+    expect(texts.join(' ')).toMatch(/2nd peck/)
+    expect(texts.join(' ')).toMatch(/💡 hint/)
     expect(texts.join(' ')).not.toMatch(/Secret/)
   })
 })

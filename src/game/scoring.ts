@@ -1,4 +1,4 @@
-import type { DayRecord, Mark, RoundResult } from './types'
+import type { DayRecord, Hint, Mark, RoundResult } from './types'
 
 /** `fixed` is a tile moved into its right spot on the second peck. */
 export const POINTS = { hit: 6, near: 3, miss: 0, fixed: 4, perfectRound: 3, perfectDay: 1 } as const
@@ -23,21 +23,23 @@ export function markOrder(order: readonly number[]): Mark[] {
  * a real second peck, greens that were already right keep 6, greens that were
  * fixed earn 4, and the perfect-round bonus is off the table.
  */
-export function scoreRound(order: readonly number[], first?: readonly number[]): RoundResult {
+export function scoreRound(order: readonly number[], first?: readonly number[], hint?: Hint): RoundResult {
   const marks = markOrder(order)
   const pecked = first?.some((item, position) => item !== order[position]) ? [...first] : undefined
-  const perfect = !pecked && marks.every((m) => m === 'hit')
+  // A hinted round can still score every tile, but it is not a perfect round.
+  const perfect = !pecked && !hint && marks.every((m) => m === 'hit')
   const score =
     marks.reduce(
       (sum, m, position) =>
         sum + (m === 'hit' && pecked && pecked[position] !== position ? POINTS.fixed : POINTS[m]),
       0,
     ) + (perfect ? POINTS.perfectRound : 0)
-  return pecked ? { order: [...order], marks, score, first: pecked } : { order: [...order], marks, score }
+  const result: RoundResult = pecked ? { order: [...order], marks, score, first: pecked } : { order: [...order], marks, score }
+  return hint ? { ...result, hint: { ...hint } } : result
 }
 
-/** Perfect means all five right on the first peck. */
-export const isPerfectRound = (r: RoundResult) => !r.first && r.marks.every((m) => m === 'hit')
+/** Perfect means all five right on the first peck, without the hint. */
+export const isPerfectRound = (r: RoundResult) => !r.first && !r.hint && r.marks.every((m) => m === 'hit')
 
 /** The colour of the bird that lands for a round: green from 80% of the points, amber from 40%. */
 export function roundTone(score: number): Mark {
@@ -79,6 +81,6 @@ const EMOJI: Record<Mark, string> = { hit: '🟩', near: '🟨', miss: '🟥' }
 export function shareText(day: number, record: DayRecord, teaser: string, url: string): string {
   const total = scoreDay(record.rounds)
   const title = `Peckish #${day} — ${total}/${DAY_MAX}${record.hard ? ' 🔥 hard' : ''}`
-  const grid = record.rounds.map((r) => r.marks.map((m) => EMOJI[m]).join('') + (r.first ? ' ↻' : '')).join('\n')
+  const grid = record.rounds.map((r) => r.marks.map((m) => EMOJI[m]).join('') + (r.first ? ' ↻' : '') + (r.hint ? ' 💡' : '')).join('\n')
   return [title, grid, teaser, url].join('\n')
 }

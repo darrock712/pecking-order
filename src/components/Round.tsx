@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { shuffledOrder } from '../game/daily'
 import { POINTS, ROUND_MAX, isPerfectRound, markOrder, scoreRound, verdict } from '../game/scoring'
-import type { Mark, PuzzleSet, RoundResult } from '../game/types'
+import type { Hint, Mark, PuzzleSet, RoundResult } from '../game/types'
 import { playFanfare, playLock, playMark, playTick, prefersReducedMotion } from '../lib/feedback'
 import { endLabels, formatValue, isCountable, scaleValues, unitOf } from '../lib/format'
 import { Confetti, CountUp } from './Effects'
@@ -20,6 +20,9 @@ interface Props {
   firstPeck?: number[]
   /** The first lock that wasn't perfect: colours show and one more go is allowed. */
   onPeck?: (order: number[]) => void
+  /** A hint already used on this round (restored after a reload). */
+  usedHint?: Hint
+  onHint?: (hint: Hint) => void
   onLock: (result: RoundResult) => void
   onNext: () => void
 }
@@ -41,13 +44,17 @@ const WAS: Record<Mark, (spot: number) => string> = {
   miss: (spot) => `2+ off spot ${spot}`,
 }
 
+/** What a hint says, pinned to the tile it was about wherever that tile moves. */
+const clueText = (hint: Hint, value: string) =>
+  hint.kind === 'value' ? value : hint.item === hint.slot ? `right in slot ${hint.slot + 1}` : `not slot ${hint.slot + 1}`
+
 const move = (order: number[], from: number, to: number) => {
   const next = [...order]
   next.splice(to, 0, ...next.splice(from, 1))
   return next
 }
 
-export function Round({ set, example, hard, seed, label, showHint, muted, nextLabel, firstPeck, onPeck, onLock, onNext }: Props) {
+export function Round({ set, example, hard, seed, label, showHint, muted, nextLabel, firstPeck, onPeck, usedHint, onHint, onLock, onNext }: Props) {
   const count = set.items.length
   const [order, setOrder] = useState(() => firstPeck ?? shuffledOrder(count, seed))
   // The first peck, once made: its colours stay on the tiles while the player has one more go.
@@ -63,6 +70,13 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
   const [settled, setSettled] = useState(false)
   const [drag, setDrag] = useState<{ item: number; offset: number } | null>(null)
   const [announcement, setAnnouncement] = useState('')
+  // One hint per round. `picking` is the slot-choosing mode; `asking` is the tile picked, awaiting a choice.
+  const [hint, setHint] = useState<Hint | null>(usedHint ?? null)
+  const [picking, setPicking] = useState(false)
+  const [asking, setAsking] = useState<number | null>(null)
+  const hintRef = useRef<HTMLButtonElement>(null)
+  const askRef = useRef<HTMLButtonElement>(null)
+  const focusAfter = useRef<'hint' | number | null>(null)
 
   const listRef = useRef<HTMLOListElement>(null)
   const pointer = useRef<{ item: number; startY: number; startPos: number; moved: boolean } | null>(null)
@@ -135,7 +149,47 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
     setAnnouncement(`Swapped ${name(a)} and ${name(b)}.`)
   }
 
+  const startHint = () => {
+    setSelected(null)
+    setPicking(true)
+    setAnnouncement('Hint: pick a slot to check. Escape cancels.')
+  }
+
+  const cancelHint = () => {
+    setPicking(false)
+    setAsking(null)
+    focusAfter.current = 'hint'
+  }
+
+  const applyHint = (kind: Hint['kind'], item: number) => {
+    const used: Hint = { kind, item, slot: order.indexOf(item) }
+    setHint(used)
+    setPicking(false)
+    setAsking(null)
+    onHint?.(used)
+    focusAfter.current = item
+    setAnnouncement(`${name(item)}: ${clueText(used, formatValue(set.items[item], unitOf(set, item)))}.`)
+  }
+
+  // Keep keyboard focus somewhere sensible as the hint controls come and go.
+  const tileButton = (item: number) => listRef.current?.querySelectorAll<HTMLButtonElement>('.tile')[item]
+  useEffect(() => {
+    const target = focusAfter.current
+    focusAfter.current = null
+    if (asking !== null) askRef.current?.focus({ preventScroll: true })
+    else if (picking) tileButton(order[0])?.focus({ preventScroll: true })
+    else if (target === 'hint') hintRef.current?.focus({ preventScroll: true })
+    else if (typeof target === 'number') tileButton(target)?.focus({ preventScroll: true })
+    // Only when the hint mode changes, not on every reorder.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [picking, asking, hint])
+
   const tap = (item: number) => {
+    if (picking) {
+      setPicking(false)
+      setAsking(item)
+      return
+    }
     if (selected === null) setSelected(item)
     else if (selected === item) setSelected(null)
     else {
@@ -158,7 +212,7 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
 
   const onPointerMove = (e: React.PointerEvent<HTMLButtonElement>) => {
     const p = pointer.current
-    if (!p) return
+    if (!p || picking) return
     const dy = e.clientY - p.startY
     if (!p.moved && Math.abs(dy) < 6) return
     p.moved = true
@@ -181,6 +235,7 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
   const onKeyDown = (e: React.KeyboardEvent, item: number) => {
     if (phase !== 'arrange' || locking) return
     const position = order.indexOf(item)
+    if (picking && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) return
     if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
       e.preventDefault()
       const target = Math.max(0, Math.min(count - 1, position + (e.key === 'ArrowUp' ? -1 : 1)))
@@ -195,6 +250,8 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
   // A short "Locked in" beat first, so pressing the button feels like committing.
   const lock = () => {
     if (locking) return
+    setPicking(false)
+    setAsking(null)
     if (prefersReducedMotion()) return commit()
     setSelected(null)
     setLocking(true)
@@ -217,7 +274,7 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
       )
       return
     }
-    const result = scoreRound(order, first ?? undefined)
+    const result = scoreRound(order, first ?? undefined, hint ?? undefined)
     setLocked(result)
     onLock(result)
     if (prefersReducedMotion()) {
@@ -232,7 +289,13 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
   const perfect = phase === 'done' && !!locked && isPerfectRound(locked)
 
   return (
-    <section className="round" aria-label={label}>
+    <section
+      className="round"
+      aria-label={label}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape' && (picking || asking !== null)) cancelHint()
+      }}
+    >
       <div className="round-head">
         <p className="round-label">{label}</p>
         <h2 className="rule">{ruleHidden ? 'Hidden rule' : set.rule}</h2>
@@ -284,6 +347,7 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
             // During the second peck each tile carries what the first peck said about it.
             const was = first && firstMarks && phase === 'arrange' ? first.indexOf(id) : -1
             const wasMark = was >= 0 && firstMarks ? firstMarks[was] : undefined
+            const clue = hint?.item === id && !shown ? clueText(hint, formatValue(item, unit)) : undefined
             return (
               <li
                 key={id}
@@ -296,13 +360,15 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
               >
                 <button
                   type="button"
-                  className={['tile', mark, wasMark && `was-${wasMark}`, selected === id && 'selected', showHint && position === 0 && phase === 'arrange' && 'nudge']
+                  className={['tile', mark, wasMark && `was-${wasMark}`, (selected === id || asking === id) && 'selected', picking && 'picking', showHint && position === 0 && phase === 'arrange' && 'nudge']
                     .filter(Boolean)
                     .join(' ')}
                   disabled={phase !== 'arrange'}
                   aria-label={
                     phase === 'arrange'
-                      ? `${item[0]}${mixed ? ` (${unit})` : ''}, position ${position + 1} of ${count}.${wasMark ? ` First peck: ${WAS[wasMark](was + 1)}.` : ''} Arrow keys move it.`
+                      ? picking
+                        ? `Check slot ${position + 1}: ${item[0]}`
+                        : `${item[0]}${mixed ? ` (${unit})` : ''}, position ${position + 1} of ${count}.${clue ? ` Hint: ${clue}.` : ''}${wasMark ? ` First peck: ${WAS[wasMark](was + 1)}.` : ''} Arrow keys move it.`
                       : `${item[0]}, ${formatValue(item, unit)}`
                   }
                   aria-pressed={phase === 'arrange' ? selected === id : undefined}
@@ -314,7 +380,12 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
                 >
                   <span className="tile-name">
                     {item[0]}
-                    {mixed && !shown && <small className="tile-unit">{unit}</small>}
+                    {mixed && !shown && !(clue && hint?.kind === 'value') && <small className="tile-unit">{unit}</small>}
+                    {clue && (
+                      <small className={`tile-clue${hint?.kind === 'check' ? (hint.item === hint.slot ? ' yes' : ' no') : ''}`}>
+                        💡 {clue}
+                      </small>
+                    )}
                   </span>
                   {shown ? (
                     <span className="tile-value">
@@ -347,6 +418,33 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
       </p>
 
       <p className="sr-only" aria-live="polite">{announcement}</p>
+
+      {phase === 'arrange' && !locking && (picking || asking !== null) && (
+        <div className="hint-panel" role="group" aria-label="Hint">
+          {picking ? (
+            <p>💡 Tap a tile to pick its slot.</p>
+          ) : (
+            asking !== null && (
+              <>
+                <p>
+                  💡 Slot {order.indexOf(asking) + 1}: <b>{name(asking)}</b>
+                </p>
+                <div className="hint-choices">
+                  <button type="button" className="secondary" ref={askRef} onClick={() => applyHint('check', asking)}>Is it right?</button>
+                  <button type="button" className="secondary" onClick={() => applyHint('value', asking)}>Show value</button>
+                </div>
+              </>
+            )
+          )}
+          <button type="button" className="hint-cancel" onClick={cancelHint}>Cancel</button>
+        </div>
+      )}
+
+      {phase === 'arrange' && !locking && !picking && asking === null && (
+        <button type="button" className="hint-btn" ref={hintRef} disabled={!!hint} onClick={startHint}>
+          {hint ? '💡 Hint used' : '💡 Use a hint (1 per round)'}
+        </button>
+      )}
 
       {phase === 'arrange' && (
         <button type="button" className={locking ? 'primary lock locking' : 'primary lock'} aria-disabled={locking} onClick={lock}>

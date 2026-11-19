@@ -1,4 +1,4 @@
-import type { DayRecord, Mark, RoundResult, Save } from './types'
+import type { DayRecord, Hint, Mark, RoundResult, Save } from './types'
 
 /** Kept from before the rename to Peckish, so existing streaks carry on. */
 const KEY = 'pecking-order:v1'
@@ -13,13 +13,23 @@ const isObject = (value: unknown): value is Record<string, unknown> => typeof va
 const isOrder = (value: unknown): value is number[] =>
   Array.isArray(value) && value.length === TILES && value.every((_, tile) => value.includes(tile))
 
+const isTile = (value: unknown): value is number => Number.isInteger(value) && (value as number) >= 0 && (value as number) < TILES
+
+function parseHint(value: unknown): Hint | undefined {
+  if (!isObject(value) || (value.kind !== 'check' && value.kind !== 'value')) return undefined
+  return isTile(value.item) && isTile(value.slot) ? { kind: value.kind, item: value.item, slot: value.slot } : undefined
+}
+
 function parseRound(value: unknown): RoundResult | undefined {
   if (!isObject(value) || !isOrder(value.order)) return undefined
   const { order, marks, score, first } = value
+  const hint = parseHint(value.hint)
   if (!Array.isArray(marks) || marks.length !== TILES || !marks.every((m) => MARKS.includes(m))) return undefined
   if (typeof score !== 'number' || !Number.isFinite(score)) return undefined
   const round: RoundResult = { order, marks: marks as Mark[], score }
-  return isOrder(first) ? { ...round, first } : round
+  if (isOrder(first)) round.first = first
+  if (hint) round.hint = hint
+  return round
 }
 
 function parseDay(value: unknown): DayRecord | undefined {
@@ -32,7 +42,12 @@ function parseDay(value: unknown): DayRecord | undefined {
     rounds.push(round)
   }
   const record: DayRecord = { rounds, hard: value.hard === true, live: value.live === true }
-  return isOrder(value.pending) && rounds.length < ROUNDS_PER_DAY ? { ...record, pending: value.pending } : record
+  if (rounds.length < ROUNDS_PER_DAY) {
+    if (isOrder(value.pending)) record.pending = value.pending
+    const hint = parseHint(value.pendingHint)
+    if (hint) record.pendingHint = hint
+  }
+  return record
 }
 
 /**

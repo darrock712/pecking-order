@@ -38,6 +38,7 @@ export function Help({ onClose }: { onClose: () => void }) {
           <li>Two pecks per round. Lock in, read the colours, then fix it once — or keep it.</li>
           <li>Right first time scores 6 a tile. A tile you fix on the second peck scores 4.</li>
           <li><strong>Mixed bag</strong> rounds count every tile in a different unit. Rank the bare numbers.</li>
+          <li>💡 One <strong>hint</strong> per round: pick a slot and ask “Is it right?” or see its value. A hinted round keeps its points but can’t be perfect, and your share shows the 💡.</li>
           <li>Every point counts towards your rank, from Egg to Top Bird.</li>
           <li>Your streak counts days played. A low score never breaks it.</li>
           <li><strong>Hard mode</strong> hides the rule. You only get a solved example to work out what the order means.</li>
