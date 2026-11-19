@@ -69,7 +69,7 @@ export function Home({ day, sets, record, hard, stats, onPlay, onArchive, onPrac
         )}
       </div>
 
-      {stats.played > 0 && <RankCard points={stats.points} />}
+      {stats.played > 0 && <RankCard points={stats.points} perDay={stats.average} />}
 
       {stats.played > 0 && (
         <dl className="stats">

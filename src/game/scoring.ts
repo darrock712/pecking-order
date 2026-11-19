@@ -1,10 +1,12 @@
-import type { DayRecord, Hint, Mark, RoundResult } from './types'
+import type { DayRecord, Mark, RoundResult } from './types'
 
 /** `fixed` is a tile moved into its right spot on the second peck. */
 export const POINTS = { hit: 6, near: 3, miss: 0, fixed: 4, perfectRound: 3, perfectDay: 1 } as const
 /** 5 items x 6 + 3 bonus. Three rounds plus the perfect-day point makes 100. */
 export const ROUND_MAX = 33
 export const DAY_MAX = 100
+/** Tiles a player may check (right or wrong?) after a wrong first peck. */
+export const CHECKS = 2
 
 /**
  * `order[position]` is the index of the item the player put there. Items are
@@ -23,22 +25,20 @@ export function markOrder(order: readonly number[]): Mark[] {
  * a real second peck, greens that were already right keep 6, greens that were
  * fixed earn 4, and the perfect-round bonus is off the table.
  */
-export function scoreRound(order: readonly number[], first?: readonly number[], hint?: Hint): RoundResult {
+export function scoreRound(order: readonly number[], first?: readonly number[]): RoundResult {
   const marks = markOrder(order)
   const pecked = first?.some((item, position) => item !== order[position]) ? [...first] : undefined
-  // A hinted round can still score every tile, but it is not a perfect round.
-  const perfect = !pecked && !hint && marks.every((m) => m === 'hit')
+  const perfect = !pecked && marks.every((m) => m === 'hit')
   const score =
     marks.reduce(
       (sum, m, position) =>
         sum + (m === 'hit' && pecked && pecked[position] !== position ? POINTS.fixed : POINTS[m]),
       0,
     ) + (perfect ? POINTS.perfectRound : 0)
-  const result: RoundResult = pecked ? { order: [...order], marks, score, first: pecked } : { order: [...order], marks, score }
-  return hint ? { ...result, hint: { ...hint } } : result
+  return pecked ? { order: [...order], marks, score, first: pecked } : { order: [...order], marks, score }
 }
 
-/** Perfect means all five right on the first peck, without the hint. */
+/** Perfect means all five right on the first peck (and, in older saves, no hint). */
 export const isPerfectRound = (r: RoundResult) => !r.first && !r.hint && r.marks.every((m) => m === 'hit')
 
 /** The colour of the bird that lands for a round: green from 80% of the points, amber from 40%. */

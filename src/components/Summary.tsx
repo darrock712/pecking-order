@@ -142,7 +142,7 @@ export function Summary({ day, record, sets, stats, fresh, muted, onPractice, on
         </div>
       </div>
 
-      {record.live && <RankCard points={stats.points} gained={total} celebrate={fresh} />}
+      {record.live && <RankCard points={stats.points} gained={total} celebrate={fresh} perDay={stats.average} />}
 
       <ul className="recap">
         {record.rounds.map((round, i) => (

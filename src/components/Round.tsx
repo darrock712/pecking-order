@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { shuffledOrder } from '../game/daily'
-import { POINTS, ROUND_MAX, isPerfectRound, markOrder, scoreRound, verdict } from '../game/scoring'
-import type { Hint, Mark, PuzzleSet, RoundResult } from '../game/types'
+import { CHECKS, POINTS, ROUND_MAX, isPerfectRound, scoreRound, verdict } from '../game/scoring'
+import type { Check, PuzzleSet, RoundResult } from '../game/types'
 import { playFanfare, playLock, playMark, playTick, prefersReducedMotion } from '../lib/feedback'
 import { endLabels, formatValue, isCountable, scaleValues, unitOf } from '../lib/format'
 import { Confetti, CountUp } from './Effects'
@@ -18,11 +18,11 @@ interface Props {
   nextLabel: string
   /** A first peck already made on this round (restored after a reload). */
   firstPeck?: number[]
-  /** The first lock that wasn't perfect: colours show and one more go is allowed. */
+  /** The first lock that wasn't perfect: "not quite", two checks and one more go. */
   onPeck?: (order: number[]) => void
-  /** A hint already used on this round (restored after a reload). */
-  usedHint?: Hint
-  onHint?: (hint: Hint) => void
+  /** Checks already used on this round (restored after a reload). */
+  usedChecks?: Check[]
+  onCheck?: (checks: Check[]) => void
   onLock: (result: RoundResult) => void
   onNext: () => void
 }
@@ -37,16 +37,8 @@ const SETTLE_MS = 1100
 const LOCK_MS = 480
 const INTERVAL_KEYS = ['year', 'temp']
 
-/** What the first peck said about a tile, in words short enough to sit on it. */
-const WAS: Record<Mark, (spot: number) => string> = {
-  hit: (spot) => `✓ spot ${spot}`,
-  near: (spot) => `1 off spot ${spot}`,
-  miss: (spot) => `2+ off spot ${spot}`,
-}
-
-/** What a hint says, pinned to the tile it was about wherever that tile moves. */
-const clueText = (hint: Hint, value: string) =>
-  hint.kind === 'value' ? value : hint.item === hint.slot ? `right in slot ${hint.slot + 1}` : `not slot ${hint.slot + 1}`
+/** What a check said, pinned to its tile wherever that tile moves. */
+const checkText = (check: Check) => (check.item === check.slot ? `✓ right in slot ${check.slot + 1}` : `✗ not slot ${check.slot + 1}`)
 
 const move = (order: number[], from: number, to: number) => {
   const next = [...order]
@@ -54,12 +46,11 @@ const move = (order: number[], from: number, to: number) => {
   return next
 }
 
-export function Round({ set, example, hard, seed, label, showHint, muted, nextLabel, firstPeck, onPeck, usedHint, onHint, onLock, onNext }: Props) {
+export function Round({ set, example, hard, seed, label, showHint, muted, nextLabel, firstPeck, onPeck, usedChecks, onCheck, onLock, onNext }: Props) {
   const count = set.items.length
   const [order, setOrder] = useState(() => firstPeck ?? shuffledOrder(count, seed))
-  // The first peck, once made: its colours stay on the tiles while the player has one more go.
+  // The first peck, once made. It only says "not quite": the colours wait for the final reveal.
   const [first, setFirst] = useState<number[] | null>(firstPeck ?? null)
-  const firstMarks = useMemo(() => first && markOrder(first), [first])
   const unchanged = !!first && first.every((item, position) => item === order[position])
   const [selected, setSelected] = useState<number | null>(null)
   const [phase, setPhase] = useState<Phase>('arrange')
@@ -70,13 +61,12 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
   const [settled, setSettled] = useState(false)
   const [drag, setDrag] = useState<{ item: number; offset: number } | null>(null)
   const [announcement, setAnnouncement] = useState('')
-  // One hint per round. `picking` is the slot-choosing mode; `asking` is the tile picked, awaiting a choice.
-  const [hint, setHint] = useState<Hint | null>(usedHint ?? null)
+  // After a wrong first peck, up to CHECKS tiles can be checked. `picking` is the tile-choosing mode.
+  const [checks, setChecks] = useState<Check[]>(usedChecks ?? [])
   const [picking, setPicking] = useState(false)
-  const [asking, setAsking] = useState<number | null>(null)
-  const hintRef = useRef<HTMLButtonElement>(null)
-  const askRef = useRef<HTMLButtonElement>(null)
-  const focusAfter = useRef<'hint' | number | null>(null)
+  const checksLeft = first ? CHECKS - checks.length : 0
+  const checkRef = useRef<HTMLButtonElement>(null)
+  const focusAfter = useRef<'check' | number | null>(null)
 
   const listRef = useRef<HTMLOListElement>(null)
   const pointer = useRef<{ item: number; startY: number; startPos: number; moved: boolean } | null>(null)
@@ -93,8 +83,6 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
   // A mixed-bag round has no rule to guess: the units on the tiles are the puzzle.
   const mixed = set.units !== undefined
   const ruleHidden = hard && !mixed && !!example && phase === 'arrange'
-  // Hard mode's only clue is the solved example: no slot hints on top of it.
-  const hintsAllowed = !hard
   const name = (item: number) => set.items[item][0]
 
   // The reveal: tiles resolve one at a time from the top, with a held beat before the last.
@@ -151,47 +139,46 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
     setAnnouncement(`Swapped ${name(a)} and ${name(b)}.`)
   }
 
-  const startHint = () => {
+  const startCheck = () => {
     setSelected(null)
     setPicking(true)
-    setAnnouncement('Hint: pick a slot to check. Escape cancels.')
+    setAnnouncement('Tap the tile to check. Escape cancels.')
   }
 
-  const cancelHint = () => {
+  const cancelCheck = () => {
     setPicking(false)
-    setAsking(null)
-    focusAfter.current = 'hint'
+    focusAfter.current = 'check'
   }
 
-  const applyHint = (kind: Hint['kind'], item: number) => {
-    const used: Hint = { kind, item, slot: order.indexOf(item) }
-    setHint(used)
+  const checkTile = (item: number) => {
+    const check: Check = { item, slot: order.indexOf(item) }
+    const right = check.item === check.slot
+    const next = [...checks, check]
+    setChecks(next)
     setPicking(false)
-    setAsking(null)
-    onHint?.(used)
+    onCheck?.(next)
+    playMark(right ? 'hit' : 'miss', muted)
     focusAfter.current = item
-    setAnnouncement(`${name(item)}: ${clueText(used, formatValue(set.items[item], unitOf(set, item)))}.`)
+    setAnnouncement(`${name(item)}: ${right ? 'right' : 'wrong'} in slot ${check.slot + 1}.`)
   }
 
-  // Keep keyboard focus somewhere sensible as the hint controls come and go.
+  /** The latest check on a tile: what the player knows about it now. */
+  const checkOf = (item: number) => checks.findLast((c) => c.item === item)
+
+  // Keep keyboard focus somewhere sensible as the check mode comes and goes.
   const tileButton = (item: number) => listRef.current?.querySelectorAll<HTMLButtonElement>('.tile')[item]
   useEffect(() => {
     const target = focusAfter.current
     focusAfter.current = null
-    if (asking !== null) askRef.current?.focus({ preventScroll: true })
-    else if (picking) tileButton(order[0])?.focus({ preventScroll: true })
-    else if (target === 'hint') hintRef.current?.focus({ preventScroll: true })
+    if (picking) tileButton(order[0])?.focus({ preventScroll: true })
+    else if (target === 'check') checkRef.current?.focus({ preventScroll: true })
     else if (typeof target === 'number') tileButton(target)?.focus({ preventScroll: true })
-    // Only when the hint mode changes, not on every reorder.
+    // Only when the check mode changes, not on every reorder.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [picking, asking, hint])
+  }, [picking, checks])
 
   const tap = (item: number) => {
-    if (picking) {
-      setPicking(false)
-      setAsking(item)
-      return
-    }
+    if (picking) return checkTile(item)
     if (selected === null) setSelected(item)
     else if (selected === item) setSelected(null)
     else {
@@ -253,7 +240,6 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
   const lock = () => {
     if (locking) return
     setPicking(false)
-    setAsking(null)
     if (prefersReducedMotion()) return commit()
     setSelected(null)
     setLocking(true)
@@ -265,18 +251,14 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
     setSelected(null)
     setLocking(false)
     if (!first && order.some((item, position) => item !== position)) {
-      // First peck, not perfect: show the colours and allow one more go.
-      const marks = markOrder(order)
-      const tally = (m: Mark) => marks.filter((x) => x === m).length
+      // First peck, not perfect: just "not quite". Two checks, then one more go.
       setFirst([...order])
       onPeck?.([...order])
-      marks.forEach((m, i) => window.setTimeout(() => playMark(m, muted), i * 90))
-      setAnnouncement(
-        `${tally('hit')} in the right spot, ${tally('near')} one place off, ${tally('miss')} further away. One more peck.`,
-      )
+      playMark('miss', muted)
+      setAnnouncement(`Not quite. Check up to ${CHECKS} tiles, then lock your final answer.`)
       return
     }
-    const result = scoreRound(order, first ?? undefined, hint ?? undefined)
+    const result = scoreRound(order, first ?? undefined)
     setLocked(result)
     onLock(result)
     if (prefersReducedMotion()) {
@@ -295,7 +277,7 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
       className="round"
       aria-label={label}
       onKeyDown={(e) => {
-        if (e.key === 'Escape' && (picking || asking !== null)) cancelHint()
+        if (e.key === 'Escape' && picking) cancelCheck()
       }}
     >
       <div className="round-head">
@@ -324,7 +306,7 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
 
       {first && phase === 'arrange' && (
         <p className="peck-note">
-          <b>One more peck.</b> Fix what you can: a fixed tile scores {POINTS.fixed}, not {POINTS.hit}.
+          <b>Not quite.</b> Check up to {CHECKS} tiles, then fix what you can. A fixed tile scores {POINTS.fixed}, not {POINTS.hit}.
         </p>
       )}
 
@@ -348,10 +330,8 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
             const mark = shown ? locked.marks[guessed] : undefined
             const dragging = drag?.item === id
             const unit = unitOf(set, id)
-            // During the second peck each tile carries what the first peck said about it.
-            const was = first && firstMarks && phase === 'arrange' ? first.indexOf(id) : -1
-            const wasMark = was >= 0 && firstMarks ? firstMarks[was] : undefined
-            const clue = hint?.item === id && !shown ? clueText(hint, formatValue(item, unit)) : undefined
+            const check = phase === 'arrange' ? checkOf(id) : undefined
+            const checkedRight = !!check && check.item === check.slot
             return (
               <li
                 key={id}
@@ -364,15 +344,15 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
               >
                 <button
                   type="button"
-                  className={['tile', mark, wasMark && `was-${wasMark}`, (selected === id || asking === id) && 'selected', picking && 'picking', showHint && position === 0 && phase === 'arrange' && 'nudge']
+                  className={['tile', mark, selected === id && 'selected', picking && 'picking', showHint && position === 0 && phase === 'arrange' && 'nudge']
                     .filter(Boolean)
                     .join(' ')}
                   disabled={phase !== 'arrange'}
                   aria-label={
                     phase === 'arrange'
                       ? picking
-                        ? `Check slot ${position + 1}: ${item[0]}`
-                        : `${item[0]}${mixed ? ` (${unit})` : ''}, position ${position + 1} of ${count}.${clue ? ` Hint: ${clue}.` : ''}${wasMark ? ` First peck: ${WAS[wasMark](was + 1)}.` : ''} Arrow keys move it.`
+                        ? `Check ${item[0]} in slot ${position + 1}`
+                        : `${item[0]}${mixed ? ` (${unit})` : ''}, position ${position + 1} of ${count}.${check ? ` Checked: ${checkedRight ? 'right' : 'wrong'} in slot ${check.slot + 1}.` : ''} Arrow keys move it.`
                       : `${item[0]}, ${formatValue(item, unit)}`
                   }
                   aria-pressed={phase === 'arrange' ? selected === id : undefined}
@@ -384,12 +364,8 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
                 >
                   <span className="tile-name">
                     {item[0]}
-                    {mixed && !shown && !(clue && hint?.kind === 'value') && <small className="tile-unit">{unit}</small>}
-                    {clue && (
-                      <small className={`tile-clue${hint?.kind === 'check' ? (hint.item === hint.slot ? ' yes' : ' no') : ''}`}>
-                        💡 {clue}
-                      </small>
-                    )}
+                    {mixed && !shown && <small className="tile-unit">{unit}</small>}
+                    {check && <small className={`tile-clue ${checkedRight ? 'yes' : 'no'}`}>{checkText(check)}</small>}
                   </span>
                   {shown ? (
                     <span className="tile-value">
@@ -403,12 +379,7 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
                       {mark !== 'hit' && !settled && <small>belongs at {id + 1}</small>}
                     </span>
                   ) : (
-                    phase === 'arrange' &&
-                    (wasMark ? (
-                      <span className="was" aria-hidden="true">{WAS[wasMark](was + 1)}</span>
-                    ) : (
-                      <span className="grip" aria-hidden="true">⋮⋮</span>
-                    ))
+                    phase === 'arrange' && <span className="grip" aria-hidden="true">⋮⋮</span>
                   )}
                   {shown && <span className="bar" aria-hidden="true" style={{ width: `${scale.fractions[id] * 100}%` }} />}
                 </button>
@@ -425,31 +396,19 @@ export function Round({ set, example, hard, seed, label, showHint, muted, nextLa
 
       <p className="sr-only" aria-live="polite">{announcement}</p>
 
-      {phase === 'arrange' && !locking && (picking || asking !== null) && (
-        <div className="hint-panel" role="group" aria-label="Hint">
+      {first && phase === 'arrange' && !locking && (
+        <div className="check-row">
           {picking ? (
-            <p>💡 Tap a tile to pick its slot.</p>
+            <>
+              <p>🔍 Tap a tile to check it.</p>
+              <button type="button" className="hint-cancel" onClick={cancelCheck}>Cancel</button>
+            </>
           ) : (
-            asking !== null && (
-              <>
-                <p>
-                  💡 Slot {order.indexOf(asking) + 1}: <b>{name(asking)}</b>
-                </p>
-                <div className="hint-choices">
-                  <button type="button" className="secondary" ref={askRef} onClick={() => applyHint('check', asking)}>Is it right?</button>
-                  <button type="button" className="secondary" onClick={() => applyHint('value', asking)}>Show value</button>
-                </div>
-              </>
-            )
+            <button type="button" className="hint-btn" ref={checkRef} disabled={checksLeft === 0} onClick={startCheck}>
+              {checksLeft > 0 ? `🔍 Check a tile · ${checksLeft} left` : 'No checks left'}
+            </button>
           )}
-          <button type="button" className="hint-cancel" onClick={cancelHint}>Cancel</button>
         </div>
-      )}
-
-      {hintsAllowed && phase === 'arrange' && !locking && !picking && asking === null && (
-        <button type="button" className="hint-btn" ref={hintRef} disabled={!!hint} onClick={startHint}>
-          {hint ? '💡 Hint used' : '💡 Use a hint (1 per round)'}
-        </button>
       )}
 
       {phase === 'arrange' && (

@@ -9,7 +9,7 @@ import { dateForDay, dayNumber, exampleFor } from './game/daily'
 import { DAY_MAX, roundTone, scoreDay } from './game/scoring'
 import { computeStats } from './game/stats'
 import { loadSave, storeSave } from './game/storage'
-import type { Hint, PuzzleSet, RoundResult, Save } from './game/types'
+import type { Check, PuzzleSet, RoundResult, Save } from './game/types'
 
 type View =
   | { kind: 'home' }
@@ -88,7 +88,7 @@ export default function App() {
     setSave((s) => {
       const existing = s.days[day]
       const record = existing ?? { rounds: [], hard: s.hard, live: day === today }
-      return { ...s, days: { ...s.days, [day]: { ...record, pending: undefined, pendingHint: undefined, rounds: [...record.rounds, result] } } }
+      return { ...s, days: { ...s.days, [day]: { ...record, pending: undefined, pendingChecks: undefined, rounds: [...record.rounds, result] } } }
     })
   }
 
@@ -100,11 +100,11 @@ export default function App() {
     })
   }
 
-  // Same for the hint: once used, it stays used.
-  const hintRound = (day: number, hint: Hint) => {
+  // Same for the checks: once used, they stay used.
+  const checkRound = (day: number, checks: Check[]) => {
     setSave((s) => {
       const record = s.days[day] ?? { rounds: [], hard: s.hard, live: day === today }
-      return { ...s, days: { ...s.days, [day]: { ...record, pendingHint: hint } } }
+      return { ...s, days: { ...s.days, [day]: { ...record, pendingChecks: checks } } }
     })
   }
 
@@ -217,9 +217,9 @@ export default function App() {
             muted={save.muted}
             nextLabel={roundIndex === 2 ? 'See my score' : 'Next round'}
             firstPeck={record?.pending}
-            usedHint={record?.pendingHint}
+            usedChecks={record?.pendingChecks}
             onPeck={(order) => peckRound(day, order)}
-            onHint={(hint) => hintRound(day, hint)}
+            onCheck={(checks) => checkRound(day, checks)}
             onLock={(result) => lockRound(day, result)}
             onNext={() => {
               setJustFinished(roundIndex === 2)
@@ -232,7 +232,7 @@ export default function App() {
   }
 
   const viewed = view.kind === 'day' ? save.days[view.day] : undefined
-  const dayInProgress = !!viewed && (viewed.rounds.length % 3 !== 0 || !!viewed.pending || !!viewed.pendingHint)
+  const dayInProgress = !!viewed && (viewed.rounds.length % 3 !== 0 || !!viewed.pending || !!viewed.pendingChecks)
 
   return (
     <div className="app">

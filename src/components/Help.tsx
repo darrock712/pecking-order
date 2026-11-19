@@ -39,14 +39,13 @@ export function Help({ onClose }: { onClose: () => void }) {
         <ul>
           <li>Three rounds a day. Put five things in order, then lock it in.</li>
           <li>The slots are numbered. The labels above and below the tiles say what goes in slot 1 and slot 5.</li>
-          <li>🟩 right spot · 🟨 one place off · 🟥 two or more off.</li>
-          <li>Two pecks per round. Lock in, read the colours, then fix it once — or keep it.</li>
+          <li>Two pecks per round. Wrong first time? You only hear <strong>not quite</strong>. 🔍 Check two tiles (right or wrong where they sit), then fix it once — or keep it.</li>
+          <li>The reveal: 🟩 right spot · 🟨 one place off · 🟥 two or more off.</li>
           <li>Right first time scores 6 a tile. A tile you fix on the second peck scores 4.</li>
           <li><strong>Mixed bag</strong> rounds count every tile in a different unit. Rank the bare numbers.</li>
-          <li>💡 One <strong>hint</strong> per round: pick a slot and ask “Is it right?” or see its value. A hinted round keeps its points but can’t be perfect, and your share shows the 💡.</li>
           <li>Every point counts towards your rank, from Egg to Top Bird.</li>
           <li>Your streak counts days played. A low score never breaks it.</li>
-          <li><strong>Hard mode</strong> hides the rule. You only get a solved example to work out what the order means, and no 💡 hints.</li>
+          <li><strong>Hard mode</strong> hides the rule. You only get a solved example to work out what the order means.</li>
         </ul>
         <button type="button" className="primary" autoFocus onClick={close}>Got it</button>
       </div>

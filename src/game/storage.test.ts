@@ -4,7 +4,7 @@ import { parseSave } from './storage'
 
 const round = scoreRound([0, 1, 2, 4, 3])
 const pecked = scoreRound([0, 1, 2, 3, 4], [1, 0, 2, 3, 4])
-const hinted = scoreRound([0, 1, 2, 4, 3], undefined, { kind: 'value', item: 3, slot: 4 })
+const hinted = { ...scoreRound([0, 1, 2, 4, 3]), hint: { kind: 'value', item: 3, slot: 4 } as const }
 
 describe('parseSave', () => {
   it('returns an empty save for anything that is not an object', () => {
@@ -15,7 +15,7 @@ describe('parseSave', () => {
 
   it('round-trips a real save through JSON', () => {
     const save = {
-      days: { 3: { rounds: [round, pecked], hard: true, live: true, pending: [4, 3, 2, 1, 0], pendingHint: { kind: 'check', item: 1, slot: 0 } }, 4: { rounds: [hinted], hard: false, live: true } },
+      days: { 3: { rounds: [round, pecked], hard: true, live: true, pending: [4, 3, 2, 1, 0], pendingChecks: [{ item: 1, slot: 0 }, { item: 3, slot: 2 }] }, 4: { rounds: [hinted], hard: false, live: true } },
       hard: true,
       muted: true,
     }
@@ -34,9 +34,13 @@ describe('parseSave', () => {
 
   it('drops a malformed hint but keeps the round', () => {
     const bad = { ...round, hint: { kind: 'peek', item: 9, slot: -1 } }
-    const day = parseSave({ days: { 1: { rounds: [bad], pendingHint: { kind: 'value', item: 7, slot: 0 } } } }).days[1]
-    expect(day.rounds).toEqual([round])
-    expect(day.pendingHint).toBeUndefined()
+    expect(parseSave({ days: { 1: { rounds: [bad] } } }).days[1].rounds).toEqual([round])
+  })
+
+  it('keeps at most two well-formed checks', () => {
+    const pendingChecks = [{ item: 7, slot: 0 }, { item: 1, slot: 1 }, 'x', { item: 2, slot: 0 }, { item: 3, slot: 3 }]
+    // Only the first two entries count, so a hand-edited save can't buy extra checks.
+    expect(parseSave({ days: { 1: { rounds: [], pendingChecks } } }).days[1].pendingChecks).toEqual([{ item: 1, slot: 1 }])
   })
 
   it('never keeps more than three rounds or a first peck on a finished day', () => {

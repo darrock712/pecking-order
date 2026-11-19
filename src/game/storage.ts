@@ -1,4 +1,5 @@
-import type { DayRecord, Hint, Mark, RoundResult, Save } from './types'
+import type { Check, DayRecord, Hint, Mark, RoundResult, Save } from './types'
+import { CHECKS } from './scoring'
 
 /** Kept from before the rename to Peckish, so existing streaks carry on. */
 const KEY = 'pecking-order:v1'
@@ -18,6 +19,15 @@ const isTile = (value: unknown): value is number => Number.isInteger(value) && (
 function parseHint(value: unknown): Hint | undefined {
   if (!isObject(value) || (value.kind !== 'check' && value.kind !== 'value')) return undefined
   return isTile(value.item) && isTile(value.slot) ? { kind: value.kind, item: value.item, slot: value.slot } : undefined
+}
+
+function parseChecks(value: unknown): Check[] | undefined {
+  if (!Array.isArray(value)) return undefined
+  const checks = value
+    .slice(0, CHECKS)
+    .filter((c): c is Record<string, unknown> => isObject(c) && isTile(c.item) && isTile(c.slot))
+    .map((c) => ({ item: c.item as number, slot: c.slot as number }))
+  return checks.length ? checks : undefined
 }
 
 function parseRound(value: unknown): RoundResult | undefined {
@@ -44,8 +54,8 @@ function parseDay(value: unknown): DayRecord | undefined {
   const record: DayRecord = { rounds, hard: value.hard === true, live: value.live === true }
   if (rounds.length < ROUNDS_PER_DAY) {
     if (isOrder(value.pending)) record.pending = value.pending
-    const hint = parseHint(value.pendingHint)
-    if (hint) record.pendingHint = hint
+    const checks = parseChecks(value.pendingChecks)
+    if (checks) record.pendingChecks = checks
   }
   return record
 }

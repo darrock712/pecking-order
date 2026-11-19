@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { dateForDay, dayNumber, exampleFor, msUntilNextDay, setsForDay, shuffledOrder } from './daily'
 import { DAY_MAX, ROUND_MAX, isPerfectRound, markOrder, scoreDay, scoreRound, shareText, swapsAway, verdict } from './scoring'
-import { rankFor } from './ranks'
+import { daysUntil, rankFor } from './ranks'
 import { computeStats } from './stats'
 import type { DayRecord, Difficulty, PuzzleSet } from './types'
 
@@ -159,20 +159,24 @@ describe('second peck', () => {
   })
 })
 
-describe('hint', () => {
-  const check = { kind: 'check', item: 2, slot: 2 } as const
+describe('hint (older saves)', () => {
+  const hinted = { ...scoreRound(SOLVED), score: ROUND_MAX - 3, hint: { kind: 'check', item: 2, slot: 2 } as const }
 
-  it('keeps the tile points but drops the perfect bonus', () => {
-    const hinted = scoreRound(SOLVED, undefined, check)
-    expect(hinted.hint).toEqual(check)
-    expect(hinted.score).toBe(ROUND_MAX - 3)
+  it('is never a perfect round', () => {
     expect(isPerfectRound(hinted)).toBe(false)
-    expect(scoreRound([1, 0, 2, 3, 4], undefined, check).score).toBe(scoreRound([1, 0, 2, 3, 4]).score)
   })
 
   it('marks a hinted round with a bulb in the share grid', () => {
-    const record: DayRecord = { rounds: [scoreRound(SOLVED), scoreRound(SOLVED, [1, 0, 2, 3, 4], check), scoreRound(SOLVED)], live: true, hard: false }
+    const record: DayRecord = { rounds: [scoreRound(SOLVED), { ...scoreRound(SOLVED, [1, 0, 2, 3, 4]), hint: hinted.hint }, scoreRound(SOLVED)], live: true, hard: false }
     expect(shareText(1, record, 't', 'u').split('\n').slice(1, 4)).toEqual(['🟩🟩🟩🟩🟩', '🟩🟩🟩🟩🟩 ↻ 💡', '🟩🟩🟩🟩🟩'])
+  })
+})
+
+describe('daysUntil', () => {
+  it('estimates whole days at the usual score, and nothing without one', () => {
+    expect(daysUntil(40, 100, 30)).toBe(2)
+    expect(daysUntil(99, 100, 65)).toBe(1)
+    expect(daysUntil(0, 100, 0)).toBeUndefined()
   })
 })
 
