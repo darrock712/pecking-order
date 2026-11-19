@@ -18,11 +18,12 @@ const isFinished = (r: DayRecord | undefined): r is DayRecord => !!r && r.rounds
  * Stats only count days finished on their own calendar day, so the archive
  * can't be used to pad a streak. The streak counts days *played*: a low score
  * never breaks it. It stays alive through today until the day is over.
+ * Days after today (a clock that was set forward, then back) are ignored.
  */
 export function computeStats(days: Save['days'], today: number): Stats {
   const live = Object.entries(days)
-    .filter(([, r]) => isFinished(r) && r.live)
     .map(([d, r]) => [Number(d), r] as const)
+    .filter(([d, r]) => d <= today && isFinished(r) && r.live)
     .sort((a, b) => a[0] - b[0])
 
   let best = 0

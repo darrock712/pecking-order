@@ -22,6 +22,19 @@ describe('parseSave', () => {
     expect(parseSave(JSON.parse(JSON.stringify(save)))).toEqual(save)
   })
 
+  it('drops rounds whose score could never happen', () => {
+    for (const score of [-1, 34, 1e308, 2.5]) {
+      const save = parseSave({ days: { 3: { rounds: [round, { ...round, score }], live: true } } })
+      expect(save.days[3].rounds).toEqual([round])
+    }
+  })
+
+  it('drops day numbers that are not real days', () => {
+    const day = { rounds: [round], live: true }
+    const save = parseSave({ days: { 0: day, '-4': day, 1.5: day, 1e9: day, 7: day } })
+    expect(Object.keys(save.days)).toEqual(['7'])
+  })
+
   it('keeps the rounds before a damaged one and drops the rest', () => {
     const days = { 2: { rounds: [round, { order: [0, 0, 0, 0, 0], marks: [], score: 'lots' }, round], hard: false, live: true } }
     expect(parseSave({ days }).days[2].rounds).toEqual([round])

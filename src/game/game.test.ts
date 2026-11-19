@@ -222,6 +222,13 @@ describe('shareText', () => {
 })
 
 describe('computeStats', () => {
+  it('ignores days after today, so a clock set forward and back cannot break the streak', () => {
+    const done = { rounds: [scoreRound([0, 1, 2, 3, 4]), scoreRound([0, 1, 2, 3, 4]), scoreRound([0, 1, 2, 3, 4])], hard: false, live: true }
+    const stats = computeStats({ 4: done, 5: done, 9: done }, 5)
+    expect(stats.streak).toBe(2)
+    expect(stats.played).toBe(2)
+  })
+
   const bad = [[4, 3, 2, 1, 0], [4, 3, 2, 1, 0], [4, 3, 2, 1, 0]]
   const perfect = [SOLVED, SOLVED, SOLVED]
 

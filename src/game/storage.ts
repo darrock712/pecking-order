@@ -1,11 +1,13 @@
 import type { Check, DayRecord, Hint, Mark, RoundResult, Save } from './types'
-import { CHECKS } from './scoring'
+import { CHECKS, ROUND_MAX } from './scoring'
 
 /** Kept from before the rename to Peckish, so existing streaks carry on. */
-const KEY = 'pecking-order:v1'
+export const KEY = 'pecking-order:v1'
 const EMPTY: Save = { days: {}, hard: false, muted: false }
 const MARKS: readonly unknown[] = ['hit', 'near', 'miss'] satisfies Mark[]
 const ROUNDS_PER_DAY = 3
+/** About 270 years of daily puzzles: far past any real day, small enough to stay sane. */
+const MAX_DAY = 100_000
 const TILES = 5
 
 const isObject = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null
@@ -35,7 +37,8 @@ function parseRound(value: unknown): RoundResult | undefined {
   const { order, marks, score, first } = value
   const hint = parseHint(value.hint)
   if (!Array.isArray(marks) || marks.length !== TILES || !marks.every((m) => MARKS.includes(m))) return undefined
-  if (typeof score !== 'number' || !Number.isFinite(score)) return undefined
+  // A round can't score outside 0..ROUND_MAX; a hand-edited number would break ranks and the share card.
+  if (typeof score !== 'number' || !Number.isInteger(score) || score < 0 || score > ROUND_MAX) return undefined
   const round: RoundResult = { order, marks: marks as Mark[], score }
   if (isOrder(first)) round.first = first
   if (hint) round.hint = hint
@@ -71,7 +74,8 @@ export function parseSave(value: unknown): Save {
   if (isObject(value.days)) {
     for (const [key, entry] of Object.entries(value.days)) {
       const day = Number(key)
-      const record = Number.isInteger(day) ? parseDay(entry) : undefined
+      // Day numbers start at 1; anything else (or something absurd) is junk.
+      const record = Number.isInteger(day) && day >= 1 && day <= MAX_DAY ? parseDay(entry) : undefined
       if (record) days[day] = record
     }
   }
