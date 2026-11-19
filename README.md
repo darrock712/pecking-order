@@ -53,6 +53,15 @@ I built it as a portfolio project: a small, finished product with real users in 
 
 A round is worth up to 33, so three perfect rounds plus the day bonus make exactly 100.
 
+## Privacy and security
+
+- No account, no analytics, no cookies. Progress lives in `localStorage` on the player's device.
+- Nothing loads from another origin: the display font is self-hosted, so the CSP is `'self'` only (script, style, font, connect).
+- Saves are parsed, not trusted: wrong shapes, impossible scores and junk day numbers are dropped, so a hand-edited save can't crash the game.
+- Two open tabs stay in sync through the `storage` event, and every write names its round, so a stale tab can't replay or overwrite one.
+- CI pins every action to a commit SHA, runs without a persisted token, and fails on high-severity `npm audit` findings. Dependabot watches npm and actions.
+- GitHub Pages can't send headers, so `frame-ancestors` / HSTS need a host that can (Cloudflare Pages, Netlify) if those matter.
+
 ## Run it
 
 Needs Node 22 or later.
