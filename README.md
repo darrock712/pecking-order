@@ -24,15 +24,16 @@ I built it as a portfolio project: a small, finished product with real users in 
 - **Sets are stored in their correct order.** An item is right when its index equals its slot, which keeps scoring to a few lines and makes content mistakes easy to spot in review.
 - **Everyone gets the same puzzle.** The puzzle number comes from the player's local date, projected onto UTC midnight before subtracting, so daylight-saving changes never skip or repeat a day. The starting shuffle is seeded by the day.
 - **Content is validated in CI.** Tests check every set has five unique items in rising order, values far enough apart to be a fair question, a teaser, and a matching set for hard mode. Bad content fails the build.
-- **Saved data is never trusted.** Old, half-written or hand-edited saves are rebuilt field by field, so they can't crash the game or fake a score. A first peck and a used hint are saved straight away, so reloading can't buy a fresh try.
+- **Saved data is never trusted.** Old, half-written or hand-edited saves are rebuilt field by field, so they can't crash the game or fake a score. A first peck and used checks are saved straight away, so reloading can't buy a fresh try.
 - **Accessible by default.** Tiles keep a stable DOM order and move with CSS, so keyboard focus is never lost while reordering. Drag, tap-to-swap or arrow keys all work; screen readers get labels and live announcements; reduced-motion is respected.
 - **Sharing is spoiler-free.** The result is an emoji grid, plus a PNG card drawn on a canvas. On phones it goes to the native share sheet (as an image where supported); desktops copy the text, and "Save image" downloads the card.
 
 ## Features
 
 - **Three rounds a day**: a warm-up, a trickier one, and a twist.
-- **Two pecks per round**: lock in, see which tiles are right, one place off or further, then fix it once.
-- **One hint per round**: pick a slot and ask "Is it right?", or reveal that tile's value. The answer stays on the tile; a hinted round keeps its points but can't be perfect, and the share shows a 💡.
+- **Two pecks per round**: lock in; if it's not right, check two tiles and fix it once.
+- **Not quite, then two checks.** A wrong first lock only says "not quite". The player can check two tiles (right or wrong in the slot they sit in), then lock a final answer. Colours only appear at the reveal.
+- **Ranks that hatch.** You start as an egg that cracks as points come in; each rank-up hatches the next bird with a short line and an "about N days" estimate to the next one.
 - **Mixed-bag rounds** every other day from day 5: five things in five different units, ranked by the bare number.
 - **The reveal shows scale**: each tile grows a bar for its value, then slides to where it really belongs.
 - **Hard mode** hides the rule and gives one solved example set as the only clue.
@@ -47,7 +48,7 @@ I built it as a portfolio project: a small, finished product with real users in 
 | Tile in the right slot | 6 |
 | Tile fixed on the second peck | 4 |
 | Tile one place off | 3 |
-| Perfect round (right first time, no hint) | +3 |
+| Perfect round (right first time) | +3 |
 | Perfect day | +1 |
 
 A round is worth up to 33, so three perfect rounds plus the day bonus make exactly 100.
@@ -69,7 +70,7 @@ npm run og       # regenerate public/og.png from public/og.svg (uses a local Chr
 src/
   game/         pure rules, no React: daily deal, scoring, stats, save parsing
   data/         the puzzle content and its validation tests
-  components/   Home, Round (arrange, hint, reveal), Summary, help dialog
+  components/   Home, Round (arrange, checks, reveal), RankCard + Egg, Summary, help dialog
   lib/          number formatting, share card drawing, sound and haptics
 scripts/        og image generator
 ```
