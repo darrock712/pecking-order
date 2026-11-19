@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Bird } from './components/Bird'
 import { Help } from './components/Help'
 import { Home } from './components/Home'
@@ -8,7 +8,7 @@ import { ALL_SETS, SETS, dealDay } from './data/sets'
 import { dateForDay, dayNumber, exampleFor } from './game/daily'
 import { DAY_MAX, roundTone, scoreDay } from './game/scoring'
 import { computeStats } from './game/stats'
-import { loadSave, storeSave } from './game/storage'
+import { KEY, loadSave, storeSave } from './game/storage'
 import type { Check, PuzzleSet, RoundResult, Save } from './game/types'
 
 type View =
@@ -59,7 +59,27 @@ export default function App() {
   const [justFinished, setJustFinished] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
 
-  useEffect(() => storeSave(save), [save])
+  // Bumped when another tab saves, so the round on screen is rebuilt from the shared save.
+  const [sync, setSync] = useState(0)
+  const fromOtherTab = useRef(false)
+
+  useEffect(() => {
+    // A save that just arrived from another tab is already stored; writing it back could ping-pong.
+    if (fromOtherTab.current) fromOtherTab.current = false
+    else storeSave(save)
+  }, [save])
+
+  // Two open tabs must never overwrite each other or let a finished round be played again.
+  useEffect(() => {
+    const onStorage = (event: StorageEvent) => {
+      if (event.key !== KEY && event.key !== null) return
+      fromOtherTab.current = true
+      setSave(loadSave())
+      setSync((n) => n + 1)
+    }
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  }, [])
 
   const openDay = (day: number) => {
     setView({ kind: 'day', day })
@@ -74,6 +94,15 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [today])
 
+  // After a save from another tab, jump the viewed day to wherever that tab got to.
+  useEffect(() => {
+    if (sync === 0 || view.kind !== 'day') return
+    setRoundIndex(save.days[view.day]?.rounds.length ?? 0)
+    setJustFinished(false)
+    // Only a new sync should trigger this.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sync])
+
   const stats = useMemo(() => computeStats(save.days, today), [save.days, today])
   const isNewPlayer = Object.keys(save.days).length === 0
 
@@ -84,25 +113,30 @@ export default function App() {
     setView({ kind: 'practice', set: pool[seed % pool.length], seed })
   }
 
-  const lockRound = (day: number, result: RoundResult) => {
+  // Every write names the round it belongs to and is dropped if the save has moved past it
+  // (another tab finished that round), so a result can never land on the wrong round.
+  const lockRound = (day: number, index: number, result: RoundResult) => {
     setSave((s) => {
       const existing = s.days[day]
+      if ((existing?.rounds.length ?? 0) !== index) return s
       const record = existing ?? { rounds: [], hard: s.hard, live: day === today }
       return { ...s, days: { ...s.days, [day]: { ...record, pending: undefined, pendingChecks: undefined, rounds: [...record.rounds, result] } } }
     })
   }
 
   // Remember a first peck straight away, so reloading can't buy a fresh first try.
-  const peckRound = (day: number, order: number[]) => {
+  const peckRound = (day: number, index: number, order: number[]) => {
     setSave((s) => {
+      if ((s.days[day]?.rounds.length ?? 0) !== index) return s
       const record = s.days[day] ?? { rounds: [], hard: s.hard, live: day === today }
       return { ...s, days: { ...s.days, [day]: { ...record, pending: order } } }
     })
   }
 
   // Same for the checks: once used, they stay used.
-  const checkRound = (day: number, checks: Check[]) => {
+  const checkRound = (day: number, index: number, checks: Check[]) => {
     setSave((s) => {
+      if ((s.days[day]?.rounds.length ?? 0) !== index) return s
       const record = s.days[day] ?? { rounds: [], hard: s.hard, live: day === today }
       return { ...s, days: { ...s.days, [day]: { ...record, pendingChecks: checks } } }
     })
@@ -207,7 +241,7 @@ export default function App() {
             </span>
           </div>
           <Round
-            key={`${day}-${roundIndex}`}
+            key={`${day}-${roundIndex}-${sync}`}
             set={set}
             example={hard ? exampleFor(set, SETS, sets) : undefined}
             hard={hard}
@@ -218,9 +252,9 @@ export default function App() {
             nextLabel={roundIndex === 2 ? 'See my score' : 'Next round'}
             firstPeck={record?.pending}
             usedChecks={record?.pendingChecks}
-            onPeck={(order) => peckRound(day, order)}
-            onCheck={(checks) => checkRound(day, checks)}
-            onLock={(result) => lockRound(day, result)}
+            onPeck={(order) => peckRound(day, roundIndex, order)}
+            onCheck={(checks) => checkRound(day, roundIndex, checks)}
+            onLock={(result) => lockRound(day, roundIndex, result)}
             onNext={() => {
               setJustFinished(roundIndex === 2)
               setRoundIndex(roundIndex + 1)
