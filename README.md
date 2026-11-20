@@ -1,45 +1,45 @@
 # Peckish
 
-**A daily ordering puzzle. Play it: https://darrock712.github.io/pecking-order/**
+A daily ordering puzzle. Play it here: https://darrock712.github.io/pecking-order/
 
 <img src="docs/start.png" alt="Peckish start screen: five birds on a wire, smallest to largest, above today's three rounds and a Play button" width="420">
 
-Every day, everyone gets the same three rounds. Each round is five things and a rule ("weakest → strongest bite", "oldest → newest"). Put them in the numbered slots, lock it in, and watch the answer resolve one tile at a time, with bars that show how far apart the real values are. It takes about a minute, runs entirely in the browser, and needs no account.
+You get three rounds a day, same as everyone else. Each round gives you five things and a rule like "weakest to strongest bite" or "oldest to newest", and you drag them into order. If your first try is wrong you get told "not quite", you can check two tiles, and then you lock in a final answer. The reveal shows bars for the real values so you can see how far off you were. A day takes about a minute. There's no account, it all runs in the browser.
 
-I built it as a portfolio project: a small, finished product with real users in mind, rather than a tutorial clone.
+I made this to have a small finished thing I could actually show people, not another tutorial project.
 
-## Tech
+## Stack
 
-- **React 19 + TypeScript (strict)**, built with **Vite**, plain CSS (no UI library)
-- **Vitest**: 221 unit tests covering the game rules, date maths, save loading and the puzzle content itself
-- **oxlint** for linting
-- **GitHub Actions**: every push runs lint, tests and build, then deploys to **GitHub Pages**
-- **PWA**: web manifest and a network-first service worker, so it installs to a home screen and plays offline
-- **Canvas + Web Share API** for the result card, **Web Audio** for synthesised sound, the **Vibration API** for haptics
-- No backend: progress lives in `localStorage`
+React 19 and TypeScript (strict), built with Vite and plain CSS. Tests are Vitest (228 of them, mostly game rules, date math, save loading and the puzzle data). Linting is oxlint. GitHub Actions runs lint, tests and build on every push and deploys to GitHub Pages.
 
-## How it works
+It's also a PWA, so you can add it to your home screen and it works offline. The share card is drawn on a canvas and sent through the Web Share API, sounds are made with Web Audio, and phones get a little vibration. There's no backend. Progress is saved in `localStorage`.
 
-- **The game core is pure functions with no React** (`src/game/`): the daily deal, the seeded shuffle, scoring, stats and save parsing. The UI only calls them, so the rules are tested in isolation.
-- **Sets are stored in their correct order.** An item is right when its index equals its slot, which keeps scoring to a few lines and makes content mistakes easy to spot in review.
-- **Everyone gets the same puzzle.** The puzzle number comes from the player's local date, projected onto UTC midnight before subtracting, so daylight-saving changes never skip or repeat a day. The starting shuffle is seeded by the day.
-- **Content is validated in CI.** Tests check every set has five unique items in rising order, values far enough apart to be a fair question, a teaser, and a matching set for hard mode. Bad content fails the build.
-- **Saved data is never trusted.** Old, half-written or hand-edited saves are rebuilt field by field, so they can't crash the game or fake a score. A first peck and used checks are saved straight away, so reloading can't buy a fresh try.
-- **Accessible by default.** Tiles keep a stable DOM order and move with CSS, so keyboard focus is never lost while reordering. Drag, tap-to-swap or arrow keys all work; screen readers get labels and live announcements; reduced-motion is respected.
-- **Sharing is spoiler-free.** The result is an emoji grid, plus a PNG card drawn on a canvas. On phones it goes to the native share sheet (as an image where supported); desktops copy the text, and "Save image" downloads the card.
+## How it's put together
+
+The game rules live in `src/game/` as plain functions with no React in them: picking the day's puzzle, the seeded shuffle, scoring, stats and reading saves. The UI just calls those, which made them easy to test on their own.
+
+Each set is stored already in the right order, so a tile is correct when its index matches its slot. That kept scoring short and made bad content easy to spot.
+
+The puzzle number comes from your local date, converted to UTC midnight before doing the subtraction. My first version just counted days since launch and it broke on daylight saving, skipping or repeating a day.
+
+The puzzle data gets tested too. Every set needs five different items in rising order, gaps big enough to be fair, a teaser line, and a partner set for hard mode. If someone adds a bad set, the build fails.
+
+I don't trust anything read back from storage. Old saves, half-written saves and hand-edited ones get rebuilt field by field, so they can't crash the game or fake a score. Your first try and used checks are saved right away, so reloading doesn't give you a fresh attempt.
+
+For accessibility, tiles keep the same DOM order and move with CSS, so keyboard focus doesn't jump around while you reorder. Drag, tap-to-swap and arrow keys all work, screen readers get labels and announcements, and reduced motion is respected.
+
+Sharing doesn't spoil anything: it's an emoji grid plus a PNG card. Phones open the share sheet, desktops copy the text, and there's a "Save image" button for the card.
 
 ## Features
 
-- **Three rounds a day**: a warm-up, a trickier one, and a twist.
-- **Two pecks per round**: lock in; if it's not right, check two tiles and fix it once.
-- **Not quite, then two checks.** A wrong first lock only says "not quite". The player can check two tiles (right or wrong in the slot they sit in), then lock a final answer. Colours only appear at the reveal.
-- **Ranks that hatch.** You start as an egg that cracks as points come in; each rank-up hatches the next bird with a short line and an "about N days" estimate to the next one.
-- **Mixed-bag rounds** every other day from day 5: five things in five different units, ranked by the bare number.
-- **The reveal shows scale**: each tile grows a bar for its value, then slides to where it really belongs.
-- **Hard mode** hides the rule and gives one solved example set as the only clue.
-- **Streak counts days played**, not days won, and points build a rank from Egg to Top Bird.
-- **Practice rounds** and an **archive** of past days, neither of which affects stats.
-- Light and dark themes, installable, works offline.
+- Three rounds a day: a warm-up, a harder one, and a twist
+- Two tries per round, with two tile checks in between
+- A rank that starts as an egg, cracks as you earn points and hatches into the next bird when you rank up
+- Mixed-bag rounds every other day from day 5: five things in five different units, ranked by the plain number
+- Hard mode hides the rule and only shows one solved example
+- Streaks count days you played, not days you won
+- Practice rounds and an archive of past days (neither counts toward stats)
+- Light and dark themes, installable, works offline
 
 ## Scoring
 
@@ -51,114 +51,109 @@ I built it as a portfolio project: a small, finished product with real users in 
 | Perfect round (right first time) | +3 |
 | Perfect day | +1 |
 
-A round is worth up to 33, so three perfect rounds plus the day bonus make exactly 100.
+A round is worth up to 33, so a perfect day comes out to exactly 100.
 
 ## Privacy and security
 
-- No account, no analytics, no cookies. Progress lives in `localStorage` on the player's device.
-- Nothing loads from another origin: the display font is self-hosted, so the CSP is `'self'` only (script, style, font, connect).
-- Saves are parsed, not trusted: wrong shapes, impossible scores and junk day numbers are dropped, so a hand-edited save can't crash the game.
-- Two open tabs stay in sync through the `storage` event, and every write names its round, so a stale tab can't replay or overwrite one.
-- CI pins every action to a commit SHA, runs without a persisted token, and fails on high-severity `npm audit` findings. Dependabot watches npm and actions.
-- GitHub Pages can't send headers, so `frame-ancestors` / HSTS need a host that can (Cloudflare Pages, Netlify) if those matter.
+No account, no analytics, no cookies. Everything stays in your browser.
 
-## Run it
+The font is self-hosted so nothing loads from another site, which lets the CSP be `'self'` only. Two open tabs stay in sync through the `storage` event, and each write is tagged with its round so an old tab can't overwrite a newer one.
 
-Needs Node 22 or later.
+In CI every action is pinned to a commit SHA, the workflow doesn't keep a token around, and high-severity `npm audit` findings fail the build. Dependabot watches npm and the actions.
+
+GitHub Pages can't set response headers, so `frame-ancestors` and HSTS would need a host like Cloudflare Pages or Netlify.
+
+## Running it
+
+Needs Node 22+.
 
 ```bash
 npm install
-npm run dev      # local dev server (add ?day=N to jump to a puzzle in dev)
-npm test         # unit tests + content validation
+npm run dev      # dev server (add ?day=N to jump to a puzzle)
+npm test         # unit tests + content checks
 npm run lint
 npm run build    # production build in dist/
-npm run og       # regenerate public/og.png from public/og.svg (uses a local Chrome or Edge)
+npm run og       # rebuild public/og.png from public/og.svg (needs local Chrome or Edge)
 ```
 
 ```
 src/
-  game/         pure rules, no React: daily deal, scoring, stats, save parsing
-  data/         the puzzle content and its validation tests
+  game/         rules, no React: daily puzzle, scoring, stats, save parsing
+  data/         puzzle content and its tests
   components/   Home, Round (arrange, checks, reveal), RankCard + Egg, Summary, help dialog
-  lib/          number formatting, share card drawing, sound and haptics
+  lib/          number formatting, share card, sound and haptics
 scripts/        og image generator
 ```
 
-## What I learned
+## Things I learned
 
-- **Separating rules from UI pays off.** Keeping the game logic as plain functions meant I could test scoring, the date maths and the content without touching React, and change the UI freely.
-- **Dates are harder than they look.** A naive "days since launch" breaks on daylight-saving changes; working in UTC midnights fixed it.
-- **Tests can guard content, not just code.** The puzzle data is the product, so CI checks it the same way it checks the logic.
-- **Never trust what's in storage.** Validating saves on load turned a class of crashes (and easy cheating) into a non-issue.
-- **Accessibility needs testing on a real device size.** A phone-width pass found small tap targets and a dialog that dropped keyboard focus on Escape; both are fixed.
-- **Browser APIs have sharp edges.** Safari only opens the share sheet straight from a tap, so the share card is drawn ahead of time rather than when the button is pressed.
-- **Scope is a feature.** Things that need a server, like "you beat 80% of players", are written up below instead of half-built.
+Daylight saving will break a naive day counter. Content needs tests just as much as code does here, since the puzzles are the whole product. Testing at phone width caught tap targets that were too small and a dialog that lost keyboard focus on Escape. Safari only opens the share sheet straight from a tap, so the share card has to be drawn ahead of time instead of when you press the button. And I left out anything that needs a server rather than half-building it (see Later).
 
 ## Content
 
-156 sets, enough for 52 days; after that the cycle repeats. They come from two decks: 120 classic sets and 36 "fun stats" sets (snack serving sizes, YouTube subscribers, bite force, LEGO piece counts, caffeine, sugar, spice, world records). The decks are dealt alternately, so a fun-stats day turns up every other day. `npm test` checks that every set has five unique items in rising order, values far enough apart to be a fair question (at least 8% apart, or 3 years / 5 degrees), a short teaser, and a same-rule partner for hard mode.
+There are 156 sets, enough for 52 days before it loops. They come from two decks, 120 classic sets and 36 "fun stats" sets (snack serving sizes, YouTube subscribers, bite force, LEGO piece counts, caffeine, sugar, spice, world records), dealt alternately. `npm test` checks that every set has five unique items in rising order, gaps of at least 8% (or 3 years / 5 degrees), a short teaser and a hard-mode partner.
 
 ### Mixed-bag sources
 
-Twelve mixed-bag sets live in `src/data/mixed.ts`. Tests require five different units per set and at least a 20% gap between neighbours. Checked on the web in November 2026: Big Mac 580 kcal (mcdonalds.com US product page), LEGO Titanic 9,090 and LEGO Eiffel Tower 10,001 pieces (Brick Fanatics), Bohemian Rhapsody 5:55 (Radio X), Bugatti Chiron limited to 261 mph (Motor Authority), male hippo about 3,400 lb (San Diego Zoo fact sheet), General Sherman 274.9 ft (NPS figure via Wikipedia), Boeing 747-400 cruise about 567 mph, ostrich egg about 2,000 kcal, hummingbird heart up to about 1,200 beats a minute in flight, Golden Gate Bridge towers 746 ft above the water (goldengate.org).
+The twelve mixed-bag sets are in `src/data/mixed.ts`. Tests require five different units per set and at least a 20% gap between neighbours. Checked online in November 2026: Big Mac 580 kcal (mcdonalds.com US product page), LEGO Titanic 9,090 and LEGO Eiffel Tower 10,001 pieces (Brick Fanatics), Bohemian Rhapsody 5:55 (Radio X), Bugatti Chiron limited to 261 mph (Motor Authority), male hippo about 3,400 lb (San Diego Zoo fact sheet), General Sherman 274.9 ft (NPS figure via Wikipedia), Boeing 747-400 cruise about 567 mph, ostrich egg about 2,000 kcal, hummingbird heart up to about 1,200 beats a minute in flight, Golden Gate Bridge towers 746 ft above the water (goldengate.org).
 
-Not checked against a source (well-known or definitional values written from memory): everything else in the mixed deck, including the Great Pyramid's current height, cheetah, greyhound, Concorde and ISS speeds, giraffe height, T. rex length, blue whale weight, Titanic length, Everest and Eiffel Tower heights, and the counts (keys, bones, teeth, stitches, tiles, floors).
+Not checked against a source (well-known values I wrote from memory): the rest of the mixed deck, including the Great Pyramid's current height, cheetah, greyhound, Concorde and ISS speeds, giraffe height, T. rex length, blue whale weight, Titanic length, Everest and Eiffel Tower heights, and the counts (keys, bones, teeth, stitches, tiles, floors).
 
 ### Fun stats sources
 
-The fun-stats deck was checked against sources in November 2026. Soft numbers are shown as "about" in the game, and every set keeps wide gaps so a small change cannot flip the order.
+Checked against sources in November 2026. Fuzzy numbers show as "about" in the game, and the gaps are wide enough that a small correction won't flip the order.
 
-- Serving sizes: US Nutrition Facts labels as listed by grocers (Goldfish 55 pieces, Cheez-It 27, Triscuit 6, Ritz 5, Doritos about 12, Lay's about 15). Counts shift by bag size and over time; Lay's and Pringles listings disagree by a few chips.
-- YouTube subscribers: Soundstripe, HypeAuditor and Tubefilter charts, October 2026 (MrBeast about 520 million, T-Series 316 million, Cocomelon about 200 million). These go stale fastest; recheck every few months.
-- Bite force: Field & Stream and BBC Science Focus lists. Only the crocodile figure was measured directly; the rest are estimates.
+- Serving sizes: US Nutrition Facts labels as listed by grocers (Goldfish 55 pieces, Cheez-It 27, Triscuit 6, Ritz 5, Doritos about 12, Lay's about 15). These change with bag size, and listings for Lay's and Pringles disagree by a few chips.
+- YouTube subscribers: Soundstripe, HypeAuditor and Tubefilter charts, October 2026 (MrBeast about 520 million, T-Series 316 million, Cocomelon about 200 million). These go out of date fastest, so recheck every few months.
+- Bite force: Field & Stream and BBC Science Focus lists. Only the crocodile number was measured directly; the rest are estimates.
 - LEGO piece counts: Brick Fanatics "biggest LEGO sets" list.
 - Caffeine: CSPI caffeine chart. Scoville: Guinness for Pepper X and Carolina Reaper, typical mid-range values for the rest.
-- World records, rechecked November 2026 because they keep falling: marathon 1:59:30 (Sabastian Sawe, London 2026, ratified by World Athletics), Rubik's Cube single 2.51 s (Xuanyi Geng, October 2026, from news reports of the WCA result), heaviest pumpkin 1,431.5 kg (Ron Wallace, October 2026, Guinness). Reese's Pieces serving of 51 pieces is from Hershey's SmartLabel.
-- Fastest baseball pitch: 105.8 mph (170.3 km/h), Aroldis Chapman, 2010, the Guinness figure. Some lists give the first radar reading of 105.1 mph.
-- Not checked against a source (written from memory): candy serving count for Hershey's Kisses, fruit sugar, McDonald's calories (a search did not turn up McDonald's own per-item figures), trophy weights, the other sport speed records, part counts for a piano, car and 747.
+- World records, rechecked November 2026: marathon 1:59:30 (Sabastian Sawe, London 2026, ratified by World Athletics), Rubik's Cube single 2.51 s (Xuanyi Geng, October 2026, from news reports of the WCA result), heaviest pumpkin 1,431.5 kg (Ron Wallace, October 2026, Guinness). Reese's Pieces serving of 51 pieces is from Hershey's SmartLabel.
+- Fastest baseball pitch: 105.8 mph (170.3 km/h), Aroldis Chapman, 2010, per Guinness. Some lists use the first radar reading of 105.1 mph.
+- Not checked (from memory): Hershey's Kisses serving count, fruit sugar, McDonald's calories (I couldn't find McDonald's own per-item numbers), trophy weights, the other sport speed records, and part counts for a piano, car and 747.
 
-Three classic-deck sets were checked against sources in November 2026:
+Three classic-deck sets were also checked in November 2026:
 
 - Blue whale heart rate: 4 to 8 beats a minute on a dive and as low as 2, but 25 to 37 at the surface (Goldbogen et al., PNAS 2019). The item now says "on a dive".
 - Kiwi and emu eggs: brown kiwi about 440 g, emu 500 to 700 g, so the order holds.
-- The height set used to include an ostrich at 2.5 m. Big males reach about 2.8 m, taller than the tallest man (2.72 m), so it was swapped for a standard door (2.03 m).
+- The height set used to have an ostrich at 2.5 m. Big males get to about 2.8 m, taller than the tallest man (2.72 m), so I swapped it for a standard door (2.03 m).
 
-The rest of the classic deck was written from general knowledge and reread in November 2026 without finding an order that looks wrong, but it has not been checked against sources. Most are textbook values. These are the ones to verify before sharing widely, because sources vary or the number is an estimate:
+The rest of the classic deck is from general knowledge. I reread it in November 2026 and didn't find a wrong order, but it hasn't been checked against sources. These are the ones worth verifying, because sources vary or the number is an estimate:
 
 - Weight of a cumulus cloud (~500 tonnes) and of the Eiffel Tower (10,100 tonnes including non-metal parts)
 - Animal top speeds: black mamba, grizzly bear, house cat, mallard, dragonfly, swift, hippo
 - Mantis shrimp punch and trap-jaw ant bite speeds
 - Elephant sleep (2 h, from one study of wild elephants)
 - Lifespans: queen termite, Greenland shark, bowhead whale, macaw
-- Counts that are estimates: trees, ants, chickens, stars in the Milky Way, languages in Papua New Guinea, bones in a newborn
+- Estimated counts: trees, ants, chickens, stars in the Milky Way, languages in Papua New Guinea, bones in a newborn
 - Lion's mane jellyfish and bootlace worm lengths
-- Khmer alphabet letter count (depends on what is counted)
-- Populations (2020s figures; these drift)
+- Khmer alphabet letter count (depends on what you count)
+- Populations (2020s figures, these drift)
 - Taste bud counts, scallop and box jellyfish eye counts, density of fresh snow
 - Records: oldest dog, cat and goldfish; deepest whale and scuba dives; the 1958 Lituya Bay wave (524 m is the run-up height on the hillside)
 - Great Wall length (21,196 km is the official survey including all branches)
 
-## Deploy
+## Deploying
 
-**GitHub Pages** (workflow included): push to a GitHub repository, then in *Settings → Pages* set *Source* to **GitHub Actions**. Every push to `main` runs lint, tests and build, then publishes `dist/`.
+GitHub Pages: the workflow is included. Push to GitHub, then under Settings → Pages set Source to GitHub Actions. Every push to `main` runs lint, tests and build, then publishes `dist/`.
 
-**Vercel**: import the repository. The defaults (`npm run build`, output `dist`) work as they are.
+Vercel: import the repo. The defaults (`npm run build`, output `dist`) work as-is.
 
-The build uses a relative base path, so it works at a domain root or under `/<repo-name>/` without changes.
+The build uses a relative base path, so it works at a domain root or under `/<repo-name>/`.
 
 ### Custom domain (peckish.io)
 
 Not set up yet. Once the domain is registered:
 
-1. Add `public/CNAME` containing the single line `peckish.io` and push.
-2. At the registrar, add four `A` records for `@`: `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`, and a `CNAME` record for `www` pointing at `darrock712.github.io`.
-3. In *Settings → Pages* enter `peckish.io` as the custom domain, wait for the DNS check, then tick **Enforce HTTPS**.
+1. Add `public/CNAME` with the single line `peckish.io` and push.
+2. At the registrar, add four `A` records for `@`: `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`, and a `CNAME` for `www` pointing at `darrock712.github.io`.
+3. Under Settings → Pages, enter `peckish.io` as the custom domain, wait for the DNS check, then tick Enforce HTTPS.
 
-Saves live in the browser per site address, so streaks on the old `github.io` address do not carry over to the new domain.
+Saves are stored per site address, so streaks from the `github.io` address won't carry over to the new domain.
 
 ## Later
 
-Not built, on purpose, because it needs a server:
+These need a server, so I left them out for now:
 
-- "You beat X% of players today" and "only 12% got round 3 perfect". A single serverless function with a key-value store would do: `POST /result {day, hard, scores[3]}` increments per-day histogram buckets, `GET /stats/:day` returns them. No accounts; one submission per browser, enforced loosely with a local flag.
-- More content. 52 days is a starting point, and the validation tests make adding sets safe.
+- "You beat X% of players today" and "only 12% got round 3 perfect". One serverless function and a key-value store would cover it: `POST /result {day, hard, scores[3]}` bumps per-day histogram buckets and `GET /stats/:day` returns them. No accounts, one submission per browser, enforced loosely with a local flag.
+- More puzzles. 52 days is a start, and the content tests make adding sets safe.
